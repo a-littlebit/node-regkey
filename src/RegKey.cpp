@@ -6,11 +6,7 @@
 
 RegKey::RegKey(HKEY baseKey, const std::string &subKeyName)
 {
-    if (RegOpenKeyExA(baseKey, subKeyName.c_str(), 0, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &_hKey) == ERROR_SUCCESS)
-        return;
-    if (RegOpenKeyExA(baseKey, subKeyName.c_str(), 0, KEY_READ | KEY_WOW64_64KEY, &_hKey) == ERROR_SUCCESS)
-        return;
-    if (RegOpenKeyExA(baseKey, subKeyName.c_str(), 0, STANDARD_RIGHTS_READ | KEY_WOW64_64KEY, &_hKey) == ERROR_SUCCESS)
+    if (RegOpenKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
         return;
 
     _hKey = NULL;
@@ -20,11 +16,7 @@ HKEY RegKey::open(HKEY baseKey, const std::string &subKeyName)
 {
     close();
 
-    if (RegOpenKeyExA(baseKey, subKeyName.c_str(), 0, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &_hKey) == ERROR_SUCCESS)
-        return _hKey;
-    if (RegOpenKeyExA(baseKey, subKeyName.c_str(), 0, KEY_READ | KEY_WOW64_64KEY, &_hKey) == ERROR_SUCCESS)
-        return _hKey;
-    if (RegOpenKeyExA(baseKey, subKeyName.c_str(), 0, STANDARD_RIGHTS_READ | KEY_WOW64_64KEY, &_hKey) == ERROR_SUCCESS)
+    if (RegOpenKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
         return _hKey;
     _hKey = NULL;
     return NULL;
@@ -253,11 +245,7 @@ HKEY RegKey::openSubkey(const std::string &subkeyName)
         return NULL;
 
     HKEY hKey = NULL;
-    if (RegOpenKeyExA(_hKey, subkeyName.c_str(), 0, KEY_ALL_ACCESS | KEY_WOW64_64KEY, &hKey) == ERROR_SUCCESS)
-        return hKey;
-    if (RegOpenKeyExA(_hKey, subkeyName.c_str(), 0, KEY_READ | KEY_WOW64_32KEY, &hKey) == ERROR_SUCCESS)
-        return hKey;
-    if (RegOpenKeyExA(_hKey, subkeyName.c_str(), 0, STANDARD_RIGHTS_READ | KEY_WOW64_64KEY, &hKey) == ERROR_SUCCESS)
+    if (RegOpenKeyA(_hKey, subkeyName.c_str(), &hKey) == ERROR_SUCCESS)
         return hKey;
 
     return NULL;
@@ -269,43 +257,8 @@ HKEY RegKey::createSubkey(const std::string &subkeyName)
         return NULL;
 
     HKEY hKey = NULL;
-    if (RegCreateKeyExA(_hKey,
-                        subkeyName.c_str(),
-                        0,
-                        NULL,
-                        REG_OPTION_NON_VOLATILE,
-                        KEY_ALL_ACCESS | KEY_WOW64_64KEY,
-                        NULL,
-                        &hKey,
-                        NULL)
-                            == ERROR_SUCCESS)
-    {
+    if (RegCreateKeyA(_hKey, subkeyName.c_str(), &hKey) == ERROR_SUCCESS)
         return hKey;
-    }
-    if (RegCreateKeyExA(_hKey,
-                        subkeyName.c_str(),
-                        0,
-                        NULL,
-                        REG_OPTION_NON_VOLATILE,
-                        KEY_READ | KEY_WOW64_64KEY,
-                        NULL,
-                        &hKey,
-                        NULL) == ERROR_SUCCESS)
-    {
-        return hKey;
-    }
-    if (RegCreateKeyExA(_hKey,
-                        subkeyName.c_str(),
-                        0,
-                        NULL,
-                        REG_OPTION_NON_VOLATILE,
-                        STANDARD_RIGHTS_READ | KEY_WOW64_64KEY,
-                        NULL,
-                        &hKey,
-                        NULL) == ERROR_SUCCESS)
-    {
-        return hKey;
-    }
 
     return NULL;
 }
@@ -354,7 +307,7 @@ bool RegKey::hasSubkey(const std::string &subkeyName) const
         return false;
 
     HKEY hKey = NULL;
-    if (RegOpenKeyExA(_hKey, subkeyName.c_str(), 0, STANDARD_RIGHTS_READ | KEY_WOW64_64KEY, &hKey) != ERROR_SUCCESS) {
+    if (RegOpenKeyA(_hKey, subkeyName.c_str(), &hKey) != ERROR_SUCCESS) {
         return false;
     }
     RegCloseKey(hKey);
