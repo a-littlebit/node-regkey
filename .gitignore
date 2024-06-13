@@ -1,0 +1,8 @@
+# CMake build files
+build/
+
+# node modules
+node_modules/
+
+# pnpm
+pnpm-lock.yaml

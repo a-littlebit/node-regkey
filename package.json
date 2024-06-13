@@ -1,0 +1,34 @@
+{
+  "name": "node-reg",
+  "version": "0.0.1",
+  "description": "Windows Registry API for Node.js",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "test": "node ./tests/scripts/test.js",
+    "build:debug": "cmake-js build --debug",
+    "build:release": "cmake-js build --release",
+    "clean": "cmake-js clean"
+  },
+  "keywords": [
+    "nodejs",
+    "registry",
+    "regedit",
+    "Windows"
+  ],
+  "author": "vvcoder",
+  "license": "BSD",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^8.0.0"
+  },
+  "cmake-js": {
+    "runtime": "node",
+    "runtimeVersion": "12.16.3",
+    "arch": "x64"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
