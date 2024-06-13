@@ -66,6 +66,8 @@ public:
 
   Napi::Value hasSubkey(const Napi::CallbackInfo &info);
 
+  Napi::Value isSubkeyWriteable(const Napi::CallbackInfo &info);
+
 private:
   std::shared_ptr<RegKey> _regKey;
   std::string _path;

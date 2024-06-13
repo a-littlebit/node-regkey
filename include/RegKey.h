@@ -86,6 +86,8 @@ public:
 
   bool hasValue(const std::string &valueName) const;
 
+  bool isSubkeyWriteable(const std::string &valueName) const;
+
   bool deleteValue(const std::string &valueName);
 
   bool hasSubkey(const std::string &subkeyName) const;

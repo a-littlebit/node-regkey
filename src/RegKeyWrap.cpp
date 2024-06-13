@@ -710,3 +710,17 @@ Napi::Value RegKeyWrap::hasSubkey(const Napi::CallbackInfo &info)
         throw Napi::TypeError::New(info.Env(), "Subkey Name shuold be a String");
     }
 }
+
+Napi::Value RegKeyWrap::isSubkeyWriteable(const Napi::CallbackInfo &info)
+{
+    if (info.Length() < 1) {
+        throw Napi::TypeError::New(info.Env(), "Subkey Expected");
+    }
+
+    if (info[0].IsString()) {
+        std::string keyName = info[0].As<Napi::String>().Utf8Value();
+        return Napi::Boolean::New(info.Env(), _regKey->isSubkeyWriteable(keyName));
+    } else {
+        throw Napi::TypeError::New(info.Env(), "Subkey Name shuold be a String");
+    }
+}

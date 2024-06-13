@@ -71,6 +71,7 @@ declare class RegKey {
   deleteSubkey(name: string): boolean;
   getSubkeyNames(): string[];
   hasSubkey(name: string): boolean;
+  isSubkeyWritable(name: string): boolean;
 }
 
 // Base Keys
