@@ -20,19 +20,19 @@ export enum RegValueType {
 // Registry key value info
 export interface RegValueInfo {
   name: string;
-  type?: string | undefined;
+  type?: RegValueType;
   data: Buffer | string | number;
 }
 
 export interface RegStringValueInfo {
   name: string;
-  type?: string | undefined;
+  type?: RegValueType | undefined;
   data: string;
 }
 
 export interface RegNumberValueInfo {
   name: string;
-  type?: string | undefined;
+  type?: RegValueType | undefined;
   data: number;
 }
 
