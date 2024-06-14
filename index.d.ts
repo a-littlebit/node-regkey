@@ -88,4 +88,6 @@ export interface BaseKeys {
 
 declare const regkey: BaseKeys;
 
-export default regkey;
+declare module 'node-regkey' {
+  export = regkey;
+}

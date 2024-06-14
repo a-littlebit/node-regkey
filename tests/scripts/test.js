@@ -1,4 +1,4 @@
-import reg from '../../index.js'
+const reg = require('../../index.js')
 
 const ms = reg.hkcu.openSubkey('Software/Microsoft')
 

@@ -2,10 +2,10 @@
   "name": "regkey",
   "version": "0.0.1",
   "description": "Windows Registry API for Node.js",
-  "type": "module",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
+    "install": "node install.js",
     "test": "node ./tests/scripts/test.js",
     "build:debug": "cmake-js build --debug",
     "build:release": "cmake-js build --release",

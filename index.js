@@ -1,4 +1,4 @@
-import bindings from "bindings"
+const bindings = require("bindings")
 
 let regkey
 
@@ -9,4 +9,4 @@ if (process.platform === "win32") {
   console.error("regkey is only supported on Windows")
 }
 
-export default regkey
+module.exports = regkey
