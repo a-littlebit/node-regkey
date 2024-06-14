@@ -2,8 +2,7 @@
 cmake_minimum_required(VERSION 3.5.0)
 
 # 项目信息
-# Todo: 修改为你的项目名称
-project(node-reg)
+project(regkey)
 
 # 输出路径
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIRR}/bin)

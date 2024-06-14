@@ -1,4 +1,4 @@
-// Type definitions for node-reg
+// Type definitions for node-regkey
 
 // Registry value types
 export enum RegValueType {
@@ -75,7 +75,7 @@ declare class RegKey {
 }
 
 // Base Keys
-export interface NodeRegistry {
+export interface BaseKeys {
   hkcr: RegKey;
   hkcu: RegKey;
   hklm: RegKey;
@@ -86,6 +86,6 @@ export interface NodeRegistry {
   hkpn: RegKey;
 }
 
-declare const reg: NodeRegistry;
+declare const regkey: BaseKeys;
 
-export default reg;
+export default regkey;

@@ -17,37 +17,37 @@ console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 ms.close()
 
 // Creating a new key
-const nodeReg = reg.hkcu.createSubkey('Software/Node-Reg')
-if (!nodeReg) {
-  console.log('Creating HKCU/Software/Node-Reg Failed!')
+const myKey = reg.hkcu.createSubkey('Software/myKey')
+if (!myKey) {
+  console.log('Creating HKCU/Software/myKey Failed!')
   process.exit(1)
 }
 
 // Writing values
 for (let i = 0; i < 5; i++) {
-  nodeReg.setStringValue('testName' + i, 'testVal')
+  myKey.setStringValue('myValue' + i, 'string value')
 }
 
 // Read All String Values
-let values = nodeReg.getStringValues()
+let values = myKey.getStringValues()
 console.log('before editing: ', values)
 
 values = values.map((v, i) => {
-  v.data = v.data + i
+  v.data = v.data + ' ' + (i + 1)
   return v
 })
 
 // Write Multiple Values
-nodeReg.applyValues(values)
-console.log('after editing: ', nodeReg.getStringValues())
+myKey.applyValues(values)
+console.log('after editing: ', myKey.getStringValues())
 
 // Delete a registry key
-if (nodeReg.deleteKey()) {
-  console.log('Delete HKCU/Software/Node-Reg Success!')
+if (myKey.deleteKey()) {
+  console.log('Delete HKCU/Software/myKey Success!')
 } else {
-  console.log('Delete HKCU/Software/Node-Reg Failed!')
+  console.log('Delete HKCU/Software/myKey Failed!')
   console.warn('Try delete it manually!')
 }
 
 // Auto close after the environment exit
-// nodeReg.close()
+// myKey.close()

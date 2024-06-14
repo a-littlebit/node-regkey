@@ -12,17 +12,17 @@ console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 
 ms.close()
 
-const nodeReg = reg.hkcu.createSubkey('Software/Node-Reg')
-if (!nodeReg) {
-  console.log('Creating HKCU/Software/Node-Reg Failed!')
+const testKey = reg.hkcu.createSubkey('Software/testKey')
+if (!testKey) {
+  console.log('Creating HKCU/Software/testKey Failed!')
   process.exit(1)
 }
 
 for (let i = 0; i < 5; i++) {
-  nodeReg.setStringValue('testName' + i, 'testVal')
+  testKey.setStringValue('testName' + i, 'testVal')
 }
 
-let values = nodeReg.getStringValues()
+let values = testKey.getStringValues()
 console.log('before editing: ', values)
 
 values = values.map((v, i) => {
@@ -30,12 +30,12 @@ values = values.map((v, i) => {
   return v
 })
 
-nodeReg.applyValues(values)
-console.log('after editing: ', nodeReg.getStringValues())
+testKey.applyValues(values)
+console.log('after editing: ', testKey.getStringValues())
 
-if (nodeReg.deleteKey()) {
-  console.log('Delete HKCU/Software/Node-Reg Success!')
+if (testKey.deleteKey()) {
+  console.log('Delete HKCU/Software/testKey Success!')
 } else {
-  console.log('Delete HKCU/Software/Node-Reg Failed!')
+  console.log('Delete HKCU/Software/testKey Failed!')
   console.warn('Try delete it manually!')
 }

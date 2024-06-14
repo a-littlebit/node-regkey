@@ -1,12 +1,12 @@
 import bindings from "bindings"
 
-let reg
+let regkey
 
 if (process.platform === "win32") {
-  reg = bindings("node-reg")
+  regkey = bindings("regkey")
 } else {
-  reg = {}
-  console.error("node-reg is only supported on Windows")
+  regkey = {}
+  console.error("regkey is only supported on Windows")
 }
 
-export default reg
+export default regkey

@@ -1,5 +1,5 @@
 {
-  "name": "node-reg",
+  "name": "regkey",
   "version": "0.0.1",
   "description": "Windows Registry API for Node.js",
   "type": "module",
