@@ -5,11 +5,13 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "install": "node install.js",
+    "install": "node-gyp-build",
     "test": "node ./tests/scripts/test.js",
     "build:debug": "cmake-js build --debug",
     "build:release": "cmake-js build --release",
-    "clean": "cmake-js clean"
+    "clean": "cmake-js clean",
+    "prebuild:ia32": "prebuildify --strip --napi --platform=win32 --arch=ia32",
+    "prebuild:x64": "prebuildify --strip --napi --platform=win32 --arch=x64"
   },
   "keywords": [
     "nodejs",
@@ -20,8 +22,8 @@
   "author": "vvcoder",
   "license": "BSD",
   "dependencies": {
-    "bindings": "^1.5.0",
-    "node-addon-api": "^8.0.0"
+    "node-addon-api": "^8.0.0",
+    "node-gyp-build": "^4.8.1"
   },
   "cmake-js": {
     "runtime": "node",
