@@ -74,20 +74,11 @@ declare class RegKey {
   isSubkeyWritable(name: string): boolean;
 }
 
-// Base Keys
-export interface BaseKeys {
-  hkcr: RegKey;
-  hkcu: RegKey;
-  hklm: RegKey;
-  hku: RegKey;
-  hkcc: RegKey;
-  hkpd: RegKey;
-  hknt: RegKey;
-  hkpn: RegKey;
-}
-
-declare const regkey: BaseKeys;
-
-declare module 'node-regkey' {
-  export = regkey;
-}
+export declare const hkcr: RegKey;
+export declare const hkcu: RegKey;
+export declare const hklm: RegKey;
+export declare const hku:  RegKey;
+export declare const hkcc: RegKey;
+export declare const hkpd: RegKey;
+export declare const hknt: RegKey;
+export declare const hkpn: RegKey;
