@@ -175,7 +175,7 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
     exports.Set("hku" , NewInstance(env, HKEY_USERS,               "HKEY_USERS"));
     exports.Set("hkcc", NewInstance(env, HKEY_CURRENT_CONFIG,      "HKEY_CURRENT_CONFIG"));
     exports.Set("hkpd", NewInstance(env, HKEY_PERFORMANCE_DATA,    "HKEY_PERFORMANCE_DATA"));
-    exports.Set("hknt", NewInstance(env, HKEY_PERFORMANCE_NLSTEXT, "HKEY_PERFORMANCE_NLSTEXT"));
+    exports.Set("hkpt", NewInstance(env, HKEY_PERFORMANCE_TEXT,    "HKEY_PERFORMANCE_TEXT"));
     exports.Set("hkpn", NewInstance(env, HKEY_PERFORMANCE_NLSTEXT, "HKEY_PERFORMANCE_NLSTEXT"));
     
 

@@ -14,6 +14,7 @@ console.log('Values of HKCU/Software/Microsoft:\n', ms.getValues())
 console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 
 // Done
+// Auto close after the environment exit
 ms.close()
 
 // Creating a new key
@@ -48,6 +49,3 @@ if (myKey.deleteKey()) {
   console.log('Delete HKCU/Software/myKey Failed!')
   console.warn('Try delete it manually!')
 }
-
-// Auto close after the environment exit
-// myKey.close()

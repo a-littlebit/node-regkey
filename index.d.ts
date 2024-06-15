@@ -80,5 +80,5 @@ export declare const hklm: RegKey;
 export declare const hku:  RegKey;
 export declare const hkcc: RegKey;
 export declare const hkpd: RegKey;
-export declare const hknt: RegKey;
+export declare const hkpt: RegKey;
 export declare const hkpn: RegKey;
