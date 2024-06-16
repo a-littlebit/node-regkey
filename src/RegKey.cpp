@@ -6,7 +6,7 @@
 
 RegKey::RegKey(HKEY baseKey, const std::string &subKeyName)
 {
-    if (RegOpenKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
+    if (RegCreateKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
         return;
 
     _hKey = NULL;
@@ -17,6 +17,16 @@ HKEY RegKey::open(HKEY baseKey, const std::string &subKeyName)
     close();
 
     if (RegOpenKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
+        return _hKey;
+    _hKey = NULL;
+    return NULL;
+}
+
+HKEY RegKey::create(HKEY baseKey, const std::string &subKeyName)
+{
+    close();
+
+    if (RegCreateKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
         return _hKey;
     _hKey = NULL;
     return NULL;

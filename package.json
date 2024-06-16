@@ -1,7 +1,7 @@
 {
   "name": "regkey",
-  "version": "1.1.0",
-  "description": "Windows Registry API for Node.js",
+  "version": "1.1.1",
+  "description": "Provide Windows registry key access for Node.js using the native Windows API.",
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
@@ -11,7 +11,8 @@
     "build:release": "cmake-js build --release",
     "clean": "cmake-js clean",
     "prebuild:ia32": "prebuildify --strip --napi --platform=win32 --arch=ia32",
-    "prebuild:x64": "prebuildify --strip --napi --platform=win32 --arch=x64"
+    "prebuild:x64": "prebuildify --strip --napi --platform=win32 --arch=x64",
+    "clean-prebuilds": "rmdir /s /q prebuilds"
   },
   "keywords": [
     "nodejs",

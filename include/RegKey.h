@@ -28,6 +28,8 @@ public:
 
   HKEY open(HKEY baseKey, const std::string &subKeyName);
 
+  HKEY create(HKEY baseKey, const std::string &subKeyName);
+
   HKEY attach(HKEY hKey);
 
   HKEY detach() {

@@ -1,6 +1,6 @@
 const reg = require('../../index.js')
 
-const ms = reg.hkcu.openSubkey('Software/Microsoft')
+const ms = new reg.RegKey('HKCU', 'Software/Microsoft')
 
 if (!ms) {
   console.log('Opening HKCU/Software/Microsoft Failed!')

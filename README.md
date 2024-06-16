@@ -1,19 +1,19 @@
 # node-regkey
 
-#### Introduction 介绍
+## Introduction
 
-为 NodeJS 提供 Windows 注册表操作
-Provide Windows Registry Access for NodeJS
+使用原生 Windows API 为 NodeJS 提供 Windows 注册表操作
+Provide Windows registry key access for Node.js using the native Windows API.
 
-#### Install
+## Install
 
 ```
 npm install regkey
 ```
 
-#### Example
+## Example
 
-###### Import base keys
+#### Import base keys
 
 ```
 const { hkcu } = require('regkey')
@@ -32,7 +32,7 @@ export declare const hkpt: RegKey; // HKEY_PERFORMANCE_TEXT
 export declare const hkpn: RegKey; // HKEY_PERFORMALCE_NLSTEXT
 ```
 
-###### Opening an existing key
+#### Opening an existing key
 
 ```
 const ms = hkcu.openSubkey('Software/Microsoft')
@@ -46,15 +46,22 @@ console.log(`Opening ${ ms.path } success`)
 
 The function returns null if opening failed
 
+You can also use the RegKey constructor to create a RegKey
 
+```
+const { RegKey } = require('regkey')
+const ms = new RegKey('HKCU/Software/Microsoft')
+// or
+const ms = new RegKey('HKCU', 'Software', 'Microsoft')
+```
 
-###### Get the name of the subkeys
+#### Get the name of the subkeys
 
 ```
 console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 ```
 
-###### Get infomation of values
+#### Get infomation of values
 
 ```
 const values = ms.getValues()
@@ -84,7 +91,7 @@ You can also close it manually
 ms.close()
 ```
 
-###### Creating a subkey
+#### Creating a subkey
 
 ```
 const myKey = hkcu.createSubkey('Software/myKey')
@@ -92,7 +99,7 @@ const myKey = hkcu.createSubkey('Software/myKey')
 
 If the key already exists, it will be directly opened
 
-###### Setting values
+#### Setting values
 
 ```
 // setting one

@@ -1,37 +1,40 @@
 #include "RegKeyWrap.h"
+#include <regex>
 
 HKEY getBaseKey(const std::string &baseKeyName)
 {
     HKEY baseKey = NULL;
-    if (baseKeyName == "HKEY_CLASSES_ROOT")
+    std::string upperName = baseKeyName;
+    std::transform(upperName.begin(), upperName.end(), upperName.begin(), ::toupper);
+    if (upperName == "HKEY_CLASSES_ROOT" || upperName == "HKCR")
     {
         baseKey = HKEY_CLASSES_ROOT;
     }
-    else if (baseKeyName == "HKEY_CURRENT_USER")
+    else if (upperName == "HKEY_CURRENT_USER" || upperName == "HKCU")
     {
         baseKey = HKEY_CURRENT_USER;
     }
-    else if (baseKeyName == "HKEY_LOCAL_MACHINE")
+    else if (upperName == "HKEY_LOCAL_MACHINE" || upperName == "HKLM")
     {
         baseKey = HKEY_LOCAL_MACHINE;
     }
-    else if (baseKeyName == "HKEY_USERS")
+    else if (upperName == "HKEY_USERS" || upperName == "HKU")
     {
         baseKey = HKEY_USERS;
     }
-    else if (baseKeyName == "HKEY_PERFORMANCE_DATA")
+    else if (upperName == "HKEY_PERFORMANCE_DATA" || upperName == "HKPD")
     {
         baseKey = HKEY_PERFORMANCE_DATA;
     }
-    else if (baseKeyName == "HKEY_PERFORMANCE_NLSTEXT")
+    else if (upperName == "HKEY_PERFORMANCE_NLSTEXT" || upperName == "HKPN")
     {
         baseKey = HKEY_PERFORMANCE_NLSTEXT;
     }
-    else if (baseKeyName == "HKEY_PERFORMANCE_TEXT")
+    else if (upperName == "HKEY_PERFORMANCE_TEXT" || upperName == "HKPT")
     {
         baseKey = HKEY_PERFORMANCE_TEXT;
     }
-    else if (baseKeyName == "HKEY_CURRENT_CONFIG")
+    else if (upperName == "HKEY_CURRENT_CONFIG" || upperName == "HKCC")
     {
         baseKey = HKEY_CURRENT_CONFIG;
     }
@@ -130,44 +133,43 @@ Napi::FunctionReference RegKeyWrap::constructor;
 
 Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
 {
-    Napi::Function func = DefineClass(env,
-                                      "RegKey",
-                                      {
-                                          InstanceAccessor("path", &RegKeyWrap::getPath, nullptr),
+    Napi::Function func = DefineClass(env, "RegKey",
+        {
+            InstanceAccessor("path", &RegKeyWrap::getPath, nullptr),
+            InstanceAccessor("name", &RegKeyWrap::getName, &RegKeyWrap::setName),
 
-                                          InstanceMethod("isValid", &RegKeyWrap::isValid),
-                                          InstanceMethod("copyTree", &RegKeyWrap::copyTree),
-                                          InstanceMethod("close", &RegKeyWrap::close),
+            InstanceMethod("isValid", &RegKeyWrap::isValid),
+            InstanceMethod("copyTree", &RegKeyWrap::copyTree),
+            InstanceMethod("close", &RegKeyWrap::close),
 
-                                          InstanceMethod("getValue", &RegKeyWrap::getValue),
-                                          InstanceMethod("getValueType", &RegKeyWrap::getValueType),
-                                          InstanceMethod("getStringValue", &RegKeyWrap::getStringValue),
-                                          InstanceMethod("getNumberValue", &RegKeyWrap::getNumberValue),
-                                          InstanceMethod("hasValue", &RegKeyWrap::hasValue),
-                                          InstanceMethod("deleteValue", &RegKeyWrap::deleteValue),
+            InstanceMethod("getValue", &RegKeyWrap::getValue),
+            InstanceMethod("getValueType", &RegKeyWrap::getValueType),
+            InstanceMethod("getStringValue", &RegKeyWrap::getStringValue),
+            InstanceMethod("getNumberValue", &RegKeyWrap::getNumberValue),
+            InstanceMethod("hasValue", &RegKeyWrap::hasValue),
+            InstanceMethod("deleteValue", &RegKeyWrap::deleteValue),
 
-                                          InstanceMethod("getValues", &RegKeyWrap::getValues),
-                                          InstanceMethod("getStringValues", &RegKeyWrap::getStringValues),
-                                          InstanceMethod("getNumberValues", &RegKeyWrap::getNumberValues),
-                                          InstanceMethod("getValueNames", &RegKeyWrap::getValueNames),
+            InstanceMethod("getValues", &RegKeyWrap::getValues),
+            InstanceMethod("getStringValues", &RegKeyWrap::getStringValues),
+            InstanceMethod("getNumberValues", &RegKeyWrap::getNumberValues),
+            InstanceMethod("getValueNames", &RegKeyWrap::getValueNames),
 
-                                          InstanceMethod("setValue", &RegKeyWrap::setValue),
-                                          InstanceMethod("setStringValue", &RegKeyWrap::setStringValue),
-                                          InstanceMethod("setNumberValue", &RegKeyWrap::setNumberValue),
-                                          InstanceMethod("applyValues", &RegKeyWrap::applyValues),
+            InstanceMethod("setValue", &RegKeyWrap::setValue),
+            InstanceMethod("setStringValue", &RegKeyWrap::setStringValue),
+            InstanceMethod("setNumberValue", &RegKeyWrap::setNumberValue),
+            InstanceMethod("applyValues", &RegKeyWrap::applyValues),
 
-                                          InstanceMethod("rename", &RegKeyWrap::rename),
-                                          InstanceMethod("deleteKey", &RegKeyWrap::deleteKey),
-                                          InstanceMethod("openSubkey", &RegKeyWrap::openSubkey),
-                                          InstanceMethod("createSubkey", &RegKeyWrap::createSubkey),
-                                          InstanceMethod("deleteSubkey", &RegKeyWrap::deleteSubkey),
-                                          InstanceMethod("getSubkeyNames", &RegKeyWrap::getSubkeyNames),
-                                          InstanceMethod("hasSubkey", &RegKeyWrap::hasSubkey)
-                                      });
+            InstanceMethod("deleteKey", &RegKeyWrap::deleteKey),
+            InstanceMethod("openSubkey", &RegKeyWrap::openSubkey),
+            InstanceMethod("createSubkey", &RegKeyWrap::createSubkey),
+            InstanceMethod("deleteSubkey", &RegKeyWrap::deleteSubkey),
+            InstanceMethod("getSubkeyNames", &RegKeyWrap::getSubkeyNames),
+            InstanceMethod("hasSubkey", &RegKeyWrap::hasSubkey)
+        });
 
     constructor = Napi::Persistent(func);
     constructor.SuppressDestruct();
-    // exports.Set("RegKey", func);
+    exports.Set("RegKey", func);
 
     exports.Set("hkcr", NewInstance(env, HKEY_CLASSES_ROOT,        "HKEY_CLASS_ROOT"));
     exports.Set("hkcu", NewInstance(env, HKEY_CURRENT_USER,        "HKEY_CURRENT_USER"));
@@ -203,26 +205,34 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
         _regKey.reset(new RegKey(HKEY(*external.Data())));
         _path = info[1].As<Napi::String>().Utf8Value();
     } else if (info[0].IsString()) {
-        std::string baseKeyName = info[0].As<Napi::String>().Utf8Value();
-        HKEY baseKey = getBaseKey(baseKeyName);
-        if (baseKey == NULL) {
-            throw Napi::TypeError::New(info.Env(), "Invalid Base Key");
+        _path = info[0].As<Napi::String>().Utf8Value();
+        for (int i = 1; i < info.Length(); i++) {
+            if (info[i].IsString()) {
+                _path += "\\" + info[i].As<Napi::String>().Utf8Value();
+            } else {
+                throw Napi::TypeError::New(info.Env(), "Invalid Key Name");
+            }
         }
 
-        if (info.Length() > 1) {
-            if (info[1].IsString()) {
-                std::string keyName = info[1].As<Napi::String>().Utf8Value();
-                _regKey.reset(new RegKey(baseKey, keyName));
-            } else {
-                throw Napi::TypeError::New(info.Env(), "Subkey shuold be a String");
-            }
-        } else {
-            _regKey.reset(new RegKey(baseKey));
+        _path = std::regex_replace(_path, std::regex("[/\\\\]+"), "\\");
+        auto it = _path.begin();
+        if (*it == '\\') {
+            _path.erase(it);
         }
-    } else if (info[0].IsObject()
-        && info[0].As<Napi::Object>().InstanceOf(RegKeyWrap::constructor.Value())) {
-        RegKeyWrap * pRegKeyWrap = Napi::ObjectWrap<RegKeyWrap>::Unwrap(info[0].As<Napi::Object>());
-        _regKey = pRegKeyWrap->_regKey;
+        it = --_path.end();
+        if (*it == '\\') {
+            _path.erase(it);
+        }
+        if (_path.empty()) {
+            throw Napi::TypeError::New(info.Env(), "Invalid Key Name");
+        }
+
+        size_t split = _path.find("\\");
+        if (split != std::string::npos) {
+            _regKey.reset(new RegKey(getBaseKey(_path.substr(0, split)), _path.substr(split + 1)));
+        } else {
+            _regKey.reset(new RegKey(getBaseKey(_path)));
+        }
     } else {
         throw Napi::TypeError::New(info.Env(), "Invalid Base Key");
     }
@@ -236,6 +246,15 @@ Napi::Value RegKeyWrap::isValid(const Napi::CallbackInfo &info)
 Napi::Value RegKeyWrap::getPath(const Napi::CallbackInfo &info)
 {
     return Napi::String::New(info.Env(), _path);
+}
+
+Napi::Value RegKeyWrap::getName(const Napi::CallbackInfo &info)
+{
+    size_t pos = _path.find_last_of("\\");
+    if (pos == std::string::npos) {
+        return Napi::String::New(info.Env(), _path);
+    }
+    return Napi::String::New(info.Env(), _path.substr(pos + 1));
 }
 
 Napi::Value RegKeyWrap::close(const Napi::CallbackInfo &info)
@@ -601,19 +620,13 @@ Napi::Value RegKeyWrap::getValueNames(const Napi::CallbackInfo &info)
     return results;
 }
 
-Napi::Value RegKeyWrap::rename(const Napi::CallbackInfo &info)
+void RegKeyWrap::setName(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-    if (info.Length() < 1) {
-        throw Napi::TypeError::New(info.Env(), "New Key Name Expected");
-    }
-
-    if (info[0].IsString()) {
+    if (value.IsString()) {
         std::string newName = info[0].As<Napi::String>().Utf8Value();
-        if (Napi::Boolean::New(info.Env(), _regKey->rename(newName))) {
+        if (_regKey->rename(newName)) {
             _path = _path.substr(0, _path.find_last_of('\\')) + '\\' + newName;
-            return Napi::Boolean::New(info.Env(), true);
         }
-        return Napi::Boolean::New(info.Env(), false);
     } else {
         throw Napi::TypeError::New(info.Env(), "New Key Name Expected");
     }

@@ -16,6 +16,10 @@ public:
 
   Napi::Value getPath(const Napi::CallbackInfo &info);
 
+  Napi::Value getName(const Napi::CallbackInfo &info);
+
+  void setName(const Napi::CallbackInfo &info, const Napi::Value &value);
+
   Napi::Value close(const Napi::CallbackInfo &info);
 
   Napi::Value copyTree(const Napi::CallbackInfo &info);
@@ -51,8 +55,6 @@ public:
   Napi::Value getValueNames(const Napi::CallbackInfo &info);
 
   // Key Operations
-
-  Napi::Value rename(const Napi::CallbackInfo &info);
 
   Napi::Value deleteKey(const Napi::CallbackInfo &info);
 

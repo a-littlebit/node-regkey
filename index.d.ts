@@ -36,8 +36,11 @@ export interface RegNumberValueInfo {
   data: number;
 }
 
-declare class RegKey {
+export declare class RegKey {
   readonly path: string;
+  name: string;
+
+  constructor(...paths: string);
 
   // Basic attributes
   isValid(): boolean;
@@ -64,7 +67,6 @@ declare class RegKey {
   deleteValue(name: string): boolean;
   
   // Key Operations
-  rename(name: string): boolean;
   deleteKey(): boolean;
   openSubkey(name: string): RegKey | null;
   createSubkey(name: string): RegKey | null;
