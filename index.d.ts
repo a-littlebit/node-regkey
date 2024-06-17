@@ -18,22 +18,37 @@ export enum RegValueType {
 }
 
 // Registry key value info
-export interface RegValueInfo {
+export interface RegValue {
   name: string;
   type?: RegValueType;
   data: Buffer | string | number;
 }
 
-export interface RegStringValueInfo {
+export interface RegBufferValue {
+  name: string;
+  type?: RegValueType | undefined;
+  data: Buffer;
+}
+
+export interface RegStringValue {
   name: string;
   type?: RegValueType | undefined;
   data: string;
 }
 
-export interface RegNumberValueInfo {
+export interface RegNumberValue {
   name: string;
   type?: RegValueType | undefined;
   data: number;
+}
+
+export interface GetValueOptions {
+  type?: Function;
+  mapByName?: boolean;
+}
+
+export interface ValueMap {
+  [key: string]: RegValue;
 }
 
 export declare class RegKey {
@@ -48,22 +63,24 @@ export declare class RegKey {
   close(): void;
 
   // Value Reading Operations
-  getValue(name: string): Buffer;
+  getValue(name: string, options?: GetValueOptions): RegValue;
+  getBufferValue(name: string): Buffer;
   getStringValue(name: string): string;
   getNumberValue(name: string): number;
 
   // Multiple Value Reading Operations
-  getValues(): RegValueInfo[];
-  getStringValues(): RegStringValueInfo[];
-  getNumberValues(): RegNumberValueInfo[];
+  getValues(options?: GetValueOptions): RegValue[] | ValueMap;
+  getBufferValues(): RegBufferValue[];
+  getStringValues(): RegStringValue[];
+  getNumberValues(): RegNumberValue[];
   getValueType(name: string): RegValueType;
   hasValue(name: string): boolean;
 
   // Value Writing Operations
-  setValue(name: string, data: Buffer, type?: RegValueType | undefined): boolean;
-  applyValues(values: RegValueInfo[]): Number;
+  setBufferValue(name: string, data: Buffer, type?: RegValueType | undefined): boolean;
   setStringValue(name: string, value: string): boolean;
   setNumberValue(name: string, value: number): boolean;
+  putValues(values: RegValue[] | ValueMap): Number;
   deleteValue(name: string): boolean;
   
   // Key Operations

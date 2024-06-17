@@ -4,7 +4,6 @@
 
 使用原生 Windows API 为 NodeJS 提供 Windows 注册表操作
 
-
 Provide Windows registry key access for Node.js using the native Windows API.
 
 ## Install
@@ -74,7 +73,7 @@ for (const value of values) {
 }
 ```
 
-The data field is a buffer. To get string data, use getStringValues
+The data field defaults to buffer. To get string data, use getStringValues
 
 ```
 const values = ms.getStringValues()
@@ -84,6 +83,27 @@ for (const value of values) {
   console.log('data: ', value.data, '\n')
 }
 ```
+
+Or you can use 'options' arg of function getValues
+
+```
+const values = ms.getValues({
+  type: String,
+  mapByName: true
+})
+
+Object.keys(values).forEach(name => {
+  console.log('name: ', name)
+  console.log('type: ', values[name].type)
+  console.log('data: ', values[name].data, '\n')
+})
+```
+
+The 'mapByName' option means to turn the result into a map from a key's name to the key
+
+The 'type' option supports String, Number and Buffer
+
+#### Close a key
 
 The key will automatically close when the JavaScript object is released
 

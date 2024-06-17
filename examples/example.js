@@ -1,4 +1,4 @@
-const reg = require('../../index.js')
+const reg = require('../index.js')
 
 const ms = reg.hkcu.openSubkey('Software/Microsoft')
 
@@ -9,7 +9,7 @@ if (!ms) {
 }
 
 // Reading values
-console.log('Values of HKCU/Software/Microsoft:\n', ms.getValues())
+console.log('Values of HKCU/Software/Microsoft:\n', ms.getBufferValues())
 // Reading Subkeys
 console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 
@@ -39,7 +39,7 @@ values = values.map((v, i) => {
 })
 
 // Write Multiple Values
-myKey.applyValues(values)
+myKey.putValues(values)
 console.log('after editing: ', myKey.getStringValues())
 
 // Delete a registry key

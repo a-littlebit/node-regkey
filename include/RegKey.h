@@ -64,13 +64,13 @@ public:
 
   std::list<std::string> getValueNames() const;
 
-  bool setStringValue(const std::string &valueName, const std::string &value);
+  bool setStringValue(const std::string &valueName, const std::string &value, DWORD type = REG_SZ);
 
-  bool setBinaryValue(const std::string &valueName, const void* value, size_t size);
+  bool setBinaryValue(const std::string &valueName, const void* value, size_t size, DWORD type = REG_BINARY);
 
-  bool setDwordValue(const std::string &valueName, DWORD value);
+  bool setDwordValue(const std::string &valueName, DWORD value, DWORD type = REG_DWORD);
 
-  bool setQwordValue(const std::string &valueName, QWORD value);
+  bool setQwordValue(const std::string &valueName, QWORD value, DWORD type = REG_QWORD);
 
   bool setValue(const std::string &valueName, const void *value, size_t size, DWORD type);
 

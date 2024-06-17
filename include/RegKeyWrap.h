@@ -26,13 +26,13 @@ public:
 
   // Value Operations
 
-  Napi::Value getValue(const Napi::CallbackInfo &info);
+  Napi::Value getBufferValue(const Napi::CallbackInfo &info);
 
   Napi::Value getStringValue(const Napi::CallbackInfo &info);
 
   Napi::Value getNumberValue(const Napi::CallbackInfo &info);
 
-  Napi::Value getValues(const Napi::CallbackInfo &info);
+  Napi::Value getBufferValues(const Napi::CallbackInfo &info);
 
   Napi::Value getStringValues(const Napi::CallbackInfo &info);
 
@@ -42,9 +42,9 @@ public:
 
   Napi::Value hasValue(const Napi::CallbackInfo &info);
 
-  Napi::Value setValue(const Napi::CallbackInfo &info);
+  Napi::Value setBufferValue(const Napi::CallbackInfo &info);
 
-  Napi::Value applyValues(const Napi::CallbackInfo &info);
+  Napi::Value putValues(const Napi::CallbackInfo &info);
 
   Napi::Value setStringValue(const Napi::CallbackInfo &info);
 

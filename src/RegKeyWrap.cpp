@@ -142,22 +142,22 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
             InstanceMethod("copyTree", &RegKeyWrap::copyTree),
             InstanceMethod("close", &RegKeyWrap::close),
 
-            InstanceMethod("getValue", &RegKeyWrap::getValue),
-            InstanceMethod("getValueType", &RegKeyWrap::getValueType),
+            InstanceMethod("getBufferValue", &RegKeyWrap::getBufferValue),
             InstanceMethod("getStringValue", &RegKeyWrap::getStringValue),
             InstanceMethod("getNumberValue", &RegKeyWrap::getNumberValue),
+            InstanceMethod("getValueType", &RegKeyWrap::getValueType),
             InstanceMethod("hasValue", &RegKeyWrap::hasValue),
             InstanceMethod("deleteValue", &RegKeyWrap::deleteValue),
 
-            InstanceMethod("getValues", &RegKeyWrap::getValues),
+            InstanceMethod("getBufferValues", &RegKeyWrap::getBufferValues),
             InstanceMethod("getStringValues", &RegKeyWrap::getStringValues),
             InstanceMethod("getNumberValues", &RegKeyWrap::getNumberValues),
             InstanceMethod("getValueNames", &RegKeyWrap::getValueNames),
 
-            InstanceMethod("setValue", &RegKeyWrap::setValue),
+            InstanceMethod("setBufferValue", &RegKeyWrap::setBufferValue),
             InstanceMethod("setStringValue", &RegKeyWrap::setStringValue),
             InstanceMethod("setNumberValue", &RegKeyWrap::setNumberValue),
-            InstanceMethod("applyValues", &RegKeyWrap::applyValues),
+            InstanceMethod("putValues", &RegKeyWrap::putValues),
 
             InstanceMethod("deleteKey", &RegKeyWrap::deleteKey),
             InstanceMethod("openSubkey", &RegKeyWrap::openSubkey),
@@ -278,7 +278,7 @@ Napi::Value RegKeyWrap::copyTree(const Napi::CallbackInfo &info)
     }
 }
 
-Napi::Value RegKeyWrap::getValue(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::getBufferValue(const Napi::CallbackInfo &info)
 {
     if (info.Length() < 1) {
         throw Napi::TypeError::New(info.Env(), "Value Name Expected");
@@ -356,7 +356,7 @@ Napi::Value RegKeyWrap::getNumberValue(const Napi::CallbackInfo &info)
     }
 }
 
-Napi::Value RegKeyWrap::getValues(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::getBufferValues(const Napi::CallbackInfo &info)
 {
     Napi::Array results = Napi::Array::New(info.Env());
     auto values = _regKey->getValues();
@@ -465,7 +465,7 @@ Napi::Value RegKeyWrap::hasValue(const Napi::CallbackInfo &info)
     }
 }
 
-Napi::Value RegKeyWrap::setValue(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::setBufferValue(const Napi::CallbackInfo &info)
 {
     if (info.Length() < 1 || !info[0].IsString()) {
         throw Napi::TypeError::New(info.Env(), "Value Name Expected");
@@ -492,13 +492,22 @@ Napi::Value RegKeyWrap::setValue(const Napi::CallbackInfo &info)
     ));
 }
 
-Napi::Value RegKeyWrap::applyValues(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
 {
-    if (info.Length() < 1 || !info[0].IsArray()) {
-        throw Napi::TypeError::New(info.Env(), "Array of Values Expected");
+    if (info.Length() < 1 || (!info[0].IsArray() && !info[0].IsObject())) {
+        throw Napi::TypeError::New(info.Env(), "Values Expected");
     }
 
-    Napi::Array values = info[0].As<Napi::Array>();
+    Napi::Array values;
+    if (info[0].IsArray()) {
+        values = info[0].As<Napi::Array>();
+    } else {
+        Napi::Object valuesObj = info[0].As<Napi::Object>();
+        values = valuesObj.GetPropertyNames();
+        for (uint32_t i = 0; i < values.Length(); i++) {
+            values.Set(i, valuesObj.Get(values.Get(i)));
+        }
+    }
     int success = 0;
     for (uint32_t i = 0; i < values.Length(); i++) {
         if (!values.Get(i).IsObject()) {

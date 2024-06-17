@@ -7,7 +7,7 @@ if (!ms) {
   process.exit(1)
 }
 
-console.log('Values of HKCU/Software/Microsoft:\n', ms.getValues())
+console.log('Values of HKCU/Software/Microsoft:\n', ms.getBufferValues())
 console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 
 ms.close()
@@ -19,18 +19,20 @@ if (!testKey) {
 }
 
 for (let i = 0; i < 5; i++) {
-  testKey.setStringValue('testName' + i, 'testVal')
+  testKey.setBufferValue('testName' + i, Buffer.from('testVal'), reg.RegValueType.REG_SZ)
 }
 
-let values = testKey.getStringValues()
+const values = testKey.getValues({
+  type: String,
+  mapByName: true
+})
 console.log('before editing: ', values)
 
-values = values.map((v, i) => {
-  v.data = v.data + i
-  return v
+Object.keys(values).forEach((v, i) => {
+  values[v].data = values[v].data + i
 })
 
-testKey.applyValues(values)
+testKey.putValues(values)
 console.log('after editing: ', testKey.getStringValues())
 
 if (testKey.deleteKey()) {
