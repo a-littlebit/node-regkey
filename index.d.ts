@@ -21,7 +21,7 @@ export enum RegValueType {
 export interface RegValue {
   name: string;
   type?: RegValueType;
-  data: Buffer | string | number;
+  data: Buffer | string | number | Array<string>;
 }
 
 export interface RegBufferValue {
@@ -40,6 +40,12 @@ export interface RegNumberValue {
   name: string;
   type?: RegValueType | undefined;
   data: number;
+}
+
+export interface RegMultiStringValue {
+  name: string;
+  type?: RegValueType | undefined;
+  data: Array<string>;
 }
 
 export interface GetValueOptions {
@@ -67,12 +73,14 @@ export declare class RegKey {
   getBufferValue(name: string): Buffer;
   getStringValue(name: string): string;
   getNumberValue(name: string): number;
+  getMultiStringValue(name: string): Array<string>;
 
   // Multiple Value Reading Operations
   getValues(options?: GetValueOptions): RegValue[] | ValueMap;
   getBufferValues(): RegBufferValue[];
   getStringValues(): RegStringValue[];
   getNumberValues(): RegNumberValue[];
+  getMultiStringValues(): RegMultiStringValue[];
   getValueType(name: string): RegValueType;
   hasValue(name: string): boolean;
 
@@ -80,6 +88,7 @@ export declare class RegKey {
   setBufferValue(name: string, data: Buffer, type?: RegValueType | undefined): boolean;
   setStringValue(name: string, value: string): boolean;
   setNumberValue(name: string, value: number): boolean;
+  setMultiStringValue(name: string, value: Array<string>): boolean;
   putValues(values: RegValue[] | ValueMap): Number;
   deleteValue(name: string): boolean;
   

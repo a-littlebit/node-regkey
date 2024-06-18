@@ -32,11 +32,15 @@ public:
 
   Napi::Value getNumberValue(const Napi::CallbackInfo &info);
 
+  Napi::Value getMultiStringValue(const Napi::CallbackInfo &info);
+
   Napi::Value getBufferValues(const Napi::CallbackInfo &info);
 
   Napi::Value getStringValues(const Napi::CallbackInfo &info);
 
   Napi::Value getNumberValues(const Napi::CallbackInfo &info);
+
+  Napi::Value getMultiStringValues(const Napi::CallbackInfo &info);
 
   Napi::Value getValueType(const Napi::CallbackInfo &info);
 
@@ -49,6 +53,8 @@ public:
   Napi::Value setStringValue(const Napi::CallbackInfo &info);
 
   Napi::Value setNumberValue(const Napi::CallbackInfo &info);
+
+  Napi::Value setMultiStringValue(const Napi::CallbackInfo &info);
 
   Napi::Value deleteValue(const Napi::CallbackInfo &info);
 

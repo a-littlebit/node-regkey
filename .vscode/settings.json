@@ -67,6 +67,8 @@
     "xmemory": "cpp",
     "xtr1common": "cpp",
     "xutility": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "codecvt": "cpp",
+    "regex": "cpp"
   }
 }

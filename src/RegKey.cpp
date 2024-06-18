@@ -66,15 +66,23 @@ bool RegKey::rename(const std::string &newName)
     return RegRenameKey(_hKey, NULL, converter.from_bytes(newName).c_str()) == ERROR_SUCCESS;
 }
 
-size_t RegKey::getValue(const std::string &valueName, void *value, size_t size)
+ValueInfo RegKey::getValue(const std::string &valueName)
 {
+    ValueInfo info;
+    info.type = REG_NONE;
     if (_hKey == NULL)
-        return false;
+        return info;
 
-    if (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, (LPBYTE)value, (LPDWORD)&size) == ERROR_SUCCESS) {
-        return size;
+    DWORD size = 0;
+    if (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, NULL, &size) != ERROR_SUCCESS) {
+        return info;
     }
-    return 0;
+    info.data.resize(size);
+    if (RegQueryValueExA(_hKey, valueName.c_str(), NULL, &info.type, info.data.data(), &size) != ERROR_SUCCESS) {
+        return info;
+    }
+    info.name = valueName;
+    return info;
 }
 
 size_t RegKey::getValueSize(const std::string &valueName)
@@ -89,23 +97,61 @@ size_t RegKey::getValueSize(const std::string &valueName)
         return 0;
 }
 
-std::string RegKey::getStringValue(const std::string &valueName) const
+ByteArray RegKey::getBinaryValue(const std::string &valueName, bool *success) const
 {
-    if (_hKey == NULL)
+    if (_hKey == NULL) {
+        if (success != NULL)
+            *success = false;
+        return ByteArray();
+    }
+
+    DWORD valueSize = 0;
+    if (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, NULL, &valueSize) != ERROR_SUCCESS
+        || valueSize == 0) {
+        if (success != NULL)
+            *success = false;
+        return ByteArray();
+    }
+    ByteArray value(valueSize, 0);
+    bool res = (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, value.data(), &valueSize) == ERROR_SUCCESS);
+    if (success != NULL)
+        *success = res;
+    
+    return value;
+}
+
+std::string RegKey::getStringValue(const std::string &valueName, bool *success) const
+{
+    if (_hKey == NULL) {
+        if (success != NULL)
+            *success = false;
         return "";
+    }
         
-    char value[MAX_VALUE_NAME];
-    DWORD valueSize = sizeof(value);
-    if (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, (LPBYTE)value, &valueSize) != ERROR_SUCCESS)
+    DWORD valueSize = 0;
+    DWORD type = 0;
+    if (RegQueryValueExA(_hKey, valueName.c_str(), NULL, &type, NULL, &valueSize) != ERROR_SUCCESS
+        || (type != REG_SZ && type != REG_EXPAND_SZ)) {
+        if (success != NULL)
+            *success = false;
         return "";
-    else
-        return value;
+    }
+    std::string value(valueSize, '\0');
+    bool res = (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, (LPBYTE)value.data(), &valueSize) == ERROR_SUCCESS);
+    if (success != NULL)
+        *success = res;
+
+    return value;
 }
 
 DWORD RegKey::getDwordValue(const std::string &valueName, bool *success) const
 {
     if (_hKey == NULL)
+    {
+        if (success != NULL)
+            *success = false;
         return 0;
+    }
 
     DWORD value = 0;
     DWORD valueSize = sizeof(value);
@@ -119,7 +165,11 @@ DWORD RegKey::getDwordValue(const std::string &valueName, bool *success) const
 QWORD RegKey::getQwordValue(const std::string &valueName, bool *success) const
 {
     if (_hKey == NULL)
+    {
+        if (success != NULL)
+            *success = false;
         return 0;
+    }
 
     QWORD value = 0;
     DWORD valueSize = sizeof(value);
@@ -128,6 +178,39 @@ QWORD RegKey::getQwordValue(const std::string &valueName, bool *success) const
         *success = res;
 
     return value;
+}
+
+std::list<std::string> RegKey::getMultiStringValue(const std::string &valueName, bool *success) const
+{
+    if (_hKey == NULL)
+    {
+        if (success != NULL)
+            *success = false;
+        return {};
+    }
+
+    DWORD valueSize = 0;
+    DWORD type = REG_NONE;
+    if (RegQueryValueExA(_hKey, valueName.c_str(), NULL, &type, NULL, &valueSize) != ERROR_SUCCESS
+        || type != REG_MULTI_SZ) {
+        if (success != NULL)
+            *success = false;
+        return {};
+    }
+
+    std::list<std::string> values;
+    char *valueData = new char[valueSize];
+    char *p = valueData;
+    bool res = (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, (LPBYTE)valueData, &valueSize) == ERROR_SUCCESS);
+    while (p < valueData + valueSize - 1) {
+        values.push_back(p);
+        p += strlen(p) + 1;
+    }
+    delete[] valueData;
+    if (success != NULL)
+        *success = res;
+
+    return values;
 }
 
 std::list<ValueInfo> RegKey::getValues() const
@@ -141,19 +224,18 @@ std::list<ValueInfo> RegKey::getValues() const
         char valueName[MAX_VALUE_NAME];
         DWORD valueNameSize = MAX_VALUE_NAME;
         DWORD valueSize = 0;
-        if (RegEnumValueA(_hKey, index, valueName, &valueNameSize, NULL, NULL, NULL, &valueSize) != ERROR_SUCCESS)
+        if (RegEnumValueA(_hKey, index, valueName, &valueNameSize, NULL, NULL, NULL, &valueSize) != ERROR_SUCCESS
+            || valueNameSize <= 0)
             break;
         valueInfo.name = valueName;
 
-        if (valueSize > 0) {
-            byte* valueData = new byte[valueSize];
-            DWORD type = REG_NONE;
-            if (RegQueryValueExA(_hKey, valueName, NULL, &type, (LPBYTE)valueData, &valueSize) == ERROR_SUCCESS) {
-                valueInfo.type = type;
-                valueInfo.data.assign(valueData, valueData + valueSize);
-            }
-            delete[] valueData;
+        byte* valueData = new byte[valueSize];
+        DWORD type = REG_NONE;
+        if (RegQueryValueExA(_hKey, valueName, NULL, &type, (LPBYTE)valueData, &valueSize) == ERROR_SUCCESS) {
+            valueInfo.type = type;
+            valueInfo.data.assign(valueData, valueData + valueSize);
         }
+        delete[] valueData;
         values.push_back(valueInfo);
     }
     return values;
@@ -174,6 +256,14 @@ std::list<std::string> RegKey::getValueNames() const
     }
 
     return valueNames;
+}
+
+bool RegKey::putValue(const ValueInfo &value)
+{
+    if (_hKey == NULL)
+        return false;
+
+    return RegSetValueExA(_hKey, value.name.c_str(), 0, value.type, value.data.data(), value.data.size()) == ERROR_SUCCESS;
 }
 
 bool RegKey::setStringValue(const std::string &valueName, const std::string &value, DWORD type)
@@ -208,15 +298,30 @@ bool RegKey::setQwordValue(const std::string &valueName, QWORD value, DWORD type
     return RegSetValueExA(_hKey, valueName.c_str(), 0, type, (LPBYTE)&value, sizeof(QWORD)) == ERROR_SUCCESS;
 }
 
-bool RegKey::setValue(const std::string &valueName, const void *value, size_t size, DWORD type)
+bool RegKey::setMultiStringValue(const std::string &valueName, const std::list<std::string> &value, DWORD type)
 {
     if (_hKey == NULL)
         return false;
 
-    return RegSetValueExA(_hKey, valueName.c_str(), 0, type, (LPBYTE)value, size) == ERROR_SUCCESS;
+    size_t size = 0;
+    for (auto it = value.begin(); it != value.end(); it++) {
+        size += it->size() + 1;
+    }
+    size++;
+    char *valueData = new char[size];
+    char *p = valueData;
+    for (auto it = value.begin(); it != value.end(); it++) {
+        strcpy(p, it->c_str());
+        p += it->size() + 1;
+    }
+    *p = '\0';
+    bool res = (RegSetValueExA(_hKey, valueName.c_str(), 0, type, (LPBYTE)valueData, size) == ERROR_SUCCESS);
+    delete[] valueData;
+
+    return res;
 }
 
-int RegKey::applyValues(const std::list<ValueInfo> &values)
+int RegKey::putValues(const std::list<ValueInfo> &values)
 {
     if (_hKey == NULL)
         return 0;
@@ -224,7 +329,7 @@ int RegKey::applyValues(const std::list<ValueInfo> &values)
     int successCount = 0;
     for (auto it = values.begin(); it != values.end(); it++) {
         const ValueInfo &valueInfo = *it;
-        if (setValue(valueInfo.name, valueInfo.data.data(), valueInfo.data.size(), valueInfo.type)) {
+        if (setBinaryValue(valueInfo.name, valueInfo.data.data(), valueInfo.data.size(), valueInfo.type)) {
             successCount++;
         }
     }

@@ -41,6 +41,9 @@ if (process.platform === "win32") {
       case Number:
         value.data = this.getNumberValue(name)
         break
+      case Array:
+        value.data = this.getMultiStringValue(name)
+        break
       default:
         value.data = this.getBufferValue(name)
         break
@@ -56,44 +59,37 @@ if (process.platform === "win32") {
 
     options.type = options.type || Buffer
     options.mapByName = options.mapByName || false
+    let values
 
     switch (options.type) {
       case String: {
-
-        let values = this.getStringValues()
-        if (options.mapByName) {
-          values = values.reduce((acc, value) => {
-            acc[value.name] = value
-            return acc
-          }, {})
-        }
-        
-        return values
+        values = this.getStringValues()
+        break
       }
         
       case Number: {
-        let values = this.getNumberValues()
-        if (options.mapByName) {
-          values = values.reduce((acc, value) => {
-            acc[value.name] = value
-            return acc
-          }, {})
-        }
-        
-        return values
+        values = this.getNumberValues()
+        break
       }
-      default: {
-        let values = this.getBufferValues()
-        if (options.mapByName) {
-          values = values.reduce((acc, value) => {
-            acc[value.name] = value
-            return acc
-          }, {})
-        }
         
-        return values
+      case Array: {
+        values = this.getMultiStringValues()
+        break
+      }
+        
+      default: {
+        values = this.getBufferValues()
+        break
       }
     }
+    
+    if (options.mapByName) {
+      values = values.reduce((acc, value) => {
+        acc[value.name] = value
+        return acc
+      }, {})
+    }
+    return values
   }
 
 } else {

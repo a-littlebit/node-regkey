@@ -101,7 +101,7 @@ Object.keys(values).forEach(name => {
 
 The 'mapByName' option means to turn the result into a map from a key's name to the key
 
-The 'type' option supports String, Number and Buffer
+The 'type' option supports String, Number, Buffer and Array(for REG_MULTI_SZ)
 
 #### Close a key
 

@@ -50,19 +50,25 @@ public:
 
   bool rename(const std::string &newName);
 
-  size_t getValue(const std::string &valueName, void *value, size_t size);
+  ValueInfo getValue(const std::string &valueName);
 
   size_t getValueSize(const std::string &valueName);
 
-  std::string getStringValue(const std::string &valueName) const;
+  ByteArray getBinaryValue(const std::string &valueName, bool *success = nullptr) const;
+
+  std::string getStringValue(const std::string &valueName, bool *success = nullptr) const;
 
   DWORD getDwordValue(const std::string &valueName, bool *success = nullptr) const;
 
   QWORD getQwordValue(const std::string &valueName, bool *success = nullptr) const;
 
+  std::list<std::string> getMultiStringValue(const std::string &valueName, bool *success = nullptr) const;
+
   std::list<ValueInfo> getValues() const;
 
   std::list<std::string> getValueNames() const;
+
+  bool putValue(const ValueInfo &value);
 
   bool setStringValue(const std::string &valueName, const std::string &value, DWORD type = REG_SZ);
 
@@ -72,9 +78,9 @@ public:
 
   bool setQwordValue(const std::string &valueName, QWORD value, DWORD type = REG_QWORD);
 
-  bool setValue(const std::string &valueName, const void *value, size_t size, DWORD type);
+  bool setMultiStringValue(const std::string &valueName, const std::list<std::string> &value, DWORD type = REG_MULTI_SZ);
 
-  int applyValues(const std::list<ValueInfo> &values);
+  int putValues(const std::list<ValueInfo> &values);
 
   DWORD getValueType(const std::string &valueName) const;
 
