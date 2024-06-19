@@ -401,7 +401,8 @@ Napi::Value RegKeyWrap::getStringValues(const Napi::CallbackInfo &info)
         Napi::Object result = Napi::Object::New(info.Env());
         result.Set("name", Napi::String::New(info.Env(), it->name));
         result.Set("type", Napi::String::New(info.Env(), getKeyTypeName(it->type)));
-        result.Set("data", Napi::String::New(info.Env(), reinterpret_cast<char*>(it->data.data())));
+        result.Set("data", Napi::String::New(info.Env(),
+            it->data.size() > 0 ? reinterpret_cast<char*>(it->data.data()) : ""));
         results.Set(i, result);
         i++;
     }
@@ -422,13 +423,21 @@ Napi::Value RegKeyWrap::getNumberValues(const Napi::CallbackInfo &info)
         switch (it->type)
         {
         case REG_DWORD:
-            result.Set("data", Napi::Number::New(info.Env(), reinterpret_cast<DWORD *>(it->data.data())[0]));
+            if (it->data.size() >= sizeof(DWORD)) {
+                result.Set("data", Napi::Number::New(info.Env(), reinterpret_cast<DWORD *>(it->data.data())[0]));
+            } else {
+                result.Set("data", Napi::Number::New(info.Env(), 0));
+            }
             results.Set(i, result);
             i++;
             break;
 
         case REG_QWORD:
-            result.Set("data", Napi::Number::New(info.Env(), reinterpret_cast<QWORD *>(it->data.data())[0]));
+            if (it->data.size() >= sizeof(QWORD)) {
+                result.Set("data", Napi::Number::New(info.Env(), reinterpret_cast<QWORD *>(it->data.data())[0]));
+            } else {
+                result.Set("data", Napi::Number::New(info.Env(), 0));
+            }
             results.Set(i, result);
             i++;
             break;
@@ -535,6 +544,72 @@ Napi::Value RegKeyWrap::setBufferValue(const Napi::CallbackInfo &info)
     ));
 }
 
+Napi::Value RegKeyWrap::setStringValue(const Napi::CallbackInfo &info)
+{
+    if (info.Length() < 1 || !info[0].IsString()) {
+        throw Napi::TypeError::New(info.Env(), "Value Name Expected");
+    }
+    if (info.Length() < 2 || !info[1].IsString()) {
+        throw Napi::TypeError::New(info.Env(), "Value Expected");
+    }
+
+    std::string valueName = info[0].As<Napi::String>().Utf8Value();
+    std::string value = info[1].As<Napi::String>().Utf8Value();
+    return Napi::Boolean::New(info.Env(), _regKey->setStringValue(valueName, value));
+}
+
+Napi::Value RegKeyWrap::setNumberValue(const Napi::CallbackInfo &info)
+{
+    if (info.Length() < 1 || !info[0].IsString()) {
+        throw Napi::TypeError::New(info.Env(), "Value Name Expected");
+    }
+
+    if (info.Length() < 2 || !info[1].IsNumber()) {
+        throw Napi::TypeError::New(info.Env(), "Value Expected");
+    }
+
+    Napi::Number value = info[1].As<Napi::Number>();
+
+    QWORD val = value.Int64Value();
+    double dVal = value.DoubleValue();
+    if (val == dVal) {
+        return Napi::Boolean::New(info.Env(), _regKey->setQwordValue(
+                                                  info[0].As<Napi::String>().Utf8Value(),
+                                                  val
+                                                ));
+    } else {
+        // 转化为字符串存储
+        std::string sVal = std::to_string(dVal);
+        return Napi::Boolean::New(info.Env(), _regKey->setStringValue(
+                                                  info[0].As<Napi::String>().Utf8Value(),
+                                                  sVal
+                                                ));
+    }
+}
+
+Napi::Value RegKeyWrap::setMultiStringValue(const Napi::CallbackInfo &info)
+{
+    if (info.Length() < 1 || !info[0].IsString()) {
+        throw Napi::TypeError::New(info.Env(), "Value Name Expected");
+    }
+
+    if (info.Length() < 2 || !info[1].IsArray()) {
+        throw Napi::TypeError::New(info.Env(), "Value Expected");
+    }
+
+    Napi::Array values = info[1].As<Napi::Array>();
+    std::list<std::string> data;
+    for (uint32_t i = 0; i < values.Length(); i++) {
+        if (values.Get(i).IsString()) {
+            data.push_back(values.Get(i).As<Napi::String>().Utf8Value());
+        }
+    }
+    return Napi::Boolean::New(info.Env(), _regKey->setMultiStringValue(
+                                                info[0].As<Napi::String>().Utf8Value(),
+                                                data
+                                              ));
+}
+
 Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
 {
     if (info.Length() < 1 || (!info[0].IsArray() && !info[0].IsObject())) {
@@ -629,72 +704,6 @@ Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
     }
 
     return Napi::Number::New(info.Env(), success);
-}
-
-Napi::Value RegKeyWrap::setStringValue(const Napi::CallbackInfo &info)
-{
-    if (info.Length() < 1 || !info[0].IsString()) {
-        throw Napi::TypeError::New(info.Env(), "Value Name Expected");
-    }
-    if (info.Length() < 2 || !info[1].IsString()) {
-        throw Napi::TypeError::New(info.Env(), "Value Expected");
-    }
-
-    std::string valueName = info[0].As<Napi::String>().Utf8Value();
-    std::string value = info[1].As<Napi::String>().Utf8Value();
-    return Napi::Boolean::New(info.Env(), _regKey->setStringValue(valueName, value));
-}
-
-Napi::Value RegKeyWrap::setNumberValue(const Napi::CallbackInfo &info)
-{
-    if (info.Length() < 1 || !info[0].IsString()) {
-        throw Napi::TypeError::New(info.Env(), "Value Name Expected");
-    }
-
-    if (info.Length() < 2 || !info[1].IsNumber()) {
-        throw Napi::TypeError::New(info.Env(), "Value Expected");
-    }
-
-    Napi::Number value = info[1].As<Napi::Number>();
-
-    QWORD val = value.Int64Value();
-    double dVal = value.DoubleValue();
-    if (val == dVal) {
-        return Napi::Boolean::New(info.Env(), _regKey->setQwordValue(
-                                                  info[0].As<Napi::String>().Utf8Value(),
-                                                  val
-                                                ));
-    } else {
-        // 转化为字符串存储
-        std::string sVal = std::to_string(dVal);
-        return Napi::Boolean::New(info.Env(), _regKey->setStringValue(
-                                                  info[0].As<Napi::String>().Utf8Value(),
-                                                  sVal
-                                                ));
-    }
-}
-
-Napi::Value RegKeyWrap::setMultiStringValue(const Napi::CallbackInfo &info)
-{
-    if (info.Length() < 1 || !info[0].IsString()) {
-        throw Napi::TypeError::New(info.Env(), "Value Name Expected");
-    }
-
-    if (info.Length() < 2 || !info[1].IsArray()) {
-        throw Napi::TypeError::New(info.Env(), "Value Expected");
-    }
-
-    Napi::Array values = info[1].As<Napi::Array>();
-    std::list<std::string> data;
-    for (uint32_t i = 0; i < values.Length(); i++) {
-        if (values.Get(i).IsString()) {
-            data.push_back(values.Get(i).As<Napi::String>().Utf8Value());
-        }
-    }
-    return Napi::Boolean::New(info.Env(), _regKey->setMultiStringValue(
-                                                info[0].As<Napi::String>().Utf8Value(),
-                                                data
-                                              ));
 }
 
 Napi::Value RegKeyWrap::deleteValue(const Napi::CallbackInfo &info)

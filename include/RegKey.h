@@ -50,9 +50,9 @@ public:
 
   bool rename(const std::string &newName);
 
-  ValueInfo getValue(const std::string &valueName);
+  ValueInfo getValue(const std::string &valueName, bool *success = nullptr);
 
-  size_t getValueSize(const std::string &valueName);
+  int getValueSize(const std::string &valueName);
 
   ByteArray getBinaryValue(const std::string &valueName, bool *success = nullptr) const;
 

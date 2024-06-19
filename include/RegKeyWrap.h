@@ -48,11 +48,11 @@ public:
 
   Napi::Value setBufferValue(const Napi::CallbackInfo &info);
 
-  Napi::Value putValues(const Napi::CallbackInfo &info);
-
   Napi::Value setStringValue(const Napi::CallbackInfo &info);
 
   Napi::Value setNumberValue(const Napi::CallbackInfo &info);
+
+  Napi::Value putValues(const Napi::CallbackInfo &info);
 
   Napi::Value setMultiStringValue(const Napi::CallbackInfo &info);
 
