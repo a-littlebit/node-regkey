@@ -1,11 +1,12 @@
 const build = require("node-gyp-build")
 
 class RegKeyError extends Error {
-  constructor(message, key, value) {
+  constructor(message, key, value, lastErrorCode) {
     super(message)
     this.name = 'RegKeyError'
     this.key = key
     this.value = value
+    this.lastErrorCode = lastErrorCode
 
     Error.captureStackTrace(this, RegKeyError)
   }

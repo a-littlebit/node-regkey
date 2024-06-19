@@ -123,9 +123,12 @@ RegKeyError: Failed to get value
     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
     at node:internal/main/run_main_module:28:49 {
   key: RegKey {},
-  value: 'A-nonexistent-value'
+  value: 'A-nonexistent-value',
+  lastErrorCode: 203
 }
 ```
+
+The 'lastErrorCode' field is the value returned by GetLastError()
 
 #### Close a key
 

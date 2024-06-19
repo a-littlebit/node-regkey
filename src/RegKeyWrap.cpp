@@ -872,7 +872,9 @@ void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info, const std::st
         Napi::Function regKeyErrorCons = regKeyError.As<Napi::Function>();
         throw regKeyErrorCons.New({
                 Napi::String::New(info.Env(), message),
-                thisObj, Napi::String::New(info.Env(), value)
+                thisObj,
+                Napi::String::New(info.Env(), value),
+                Napi::Number::New(info.Env(), GetLastError())
             }).As<Napi::Error>();
     }
 }

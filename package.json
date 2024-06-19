@@ -1,6 +1,6 @@
 {
   "name": "regkey",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Provide Windows registry key access for Node.js using the native Windows API.",
   "main": "index.js",
   "types": "index.d.ts",
@@ -15,10 +15,9 @@
     "clean-prebuilds": "rmdir /s /q prebuilds"
   },
   "keywords": [
-    "nodejs",
     "registry",
-    "regedit",
-    "Windows"
+    "Windows",
+    "win32"
   ],
   "author": "vvcoder",
   "license": "BSD",
