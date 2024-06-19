@@ -252,12 +252,15 @@ std::list<ValueInfo> RegKey::getValues() const
     for (DWORD index = 0; ; index++) {
         ValueInfo valueInfo;
         DWORD valueNameSize = MAX_VALUE_NAME;
-        valueInfo.name.resize(valueNameSize);
+        char *valueName = new char[valueNameSize];
         valueInfo.type = REG_NONE;
         DWORD valueSize = 0;
-        if (RegEnumValueA(_hKey, index, (LPSTR)valueInfo.name.data(), &valueNameSize, NULL, &valueInfo.type, NULL, &valueSize) != ERROR_SUCCESS)
+        if (RegEnumValueA(_hKey, index, valueName, &valueNameSize, NULL, &valueInfo.type, NULL, &valueSize) != ERROR_SUCCESS) {
+            delete[] valueName;
             break;
-        valueInfo.name.resize(valueNameSize);
+        }
+        valueInfo.name = valueName;
+        delete[] valueName;
 
         if (valueSize > 0) {
             byte* valueData = new byte[valueSize];

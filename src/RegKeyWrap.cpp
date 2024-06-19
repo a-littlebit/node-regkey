@@ -475,7 +475,7 @@ Napi::Value RegKeyWrap::getMultiStringValues(const Napi::CallbackInfo &info)
 
         Napi::Array data = Napi::Array::New(info.Env());
         int index = 0;
-        for (int j = 0; j < it->data.size() - 1; j += strlen(reinterpret_cast<char *>(it->data.data()) + j)) {
+        for (int j = 0; j < it->data.size() - 1; j += 1U + strlen(reinterpret_cast<char *>(it->data.data()) + j)) {
             data.Set(index, Napi::String::New(info.Env(), reinterpret_cast<char *>(it->data.data()) + j));
             index++;
         }
@@ -570,7 +570,7 @@ Napi::Value RegKeyWrap::setNumberValue(const Napi::CallbackInfo &info)
 
     Napi::Number value = info[1].As<Napi::Number>();
 
-    QWORD val = value.Int64Value();
+    QWORD val = abs(value.Int64Value());
     double dVal = value.DoubleValue();
     if (val == dVal) {
         return Napi::Boolean::New(info.Env(), _regKey->setQwordValue(
@@ -624,7 +624,9 @@ Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
         values = valuesObj.GetPropertyNames();
         for (uint32_t i = 0; i < values.Length(); i++) {
             Napi::Object value = valuesObj.Get(values.Get(i)).As<Napi::Object>();
-            value.Set("originalName", values.Get(i));
+            if (!values.Get(i).StrictEquals(value.Get("name"))) {
+                _regKey->deleteValue(values.Get(i).As<Napi::String>().Utf8Value());
+            }
             values.Set(i, value);
         }
     }
@@ -636,14 +638,6 @@ Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
 
         Napi::Object value = values.Get(i).As<Napi::Object>();
         std::string name = value.Get("name").As<Napi::String>().Utf8Value();
-        std::string originalName = value.Get("originalName").As<Napi::String>().Utf8Value();
-        if (name != originalName) {
-            ValueInfo info = _regKey->getValue(originalName);
-            _regKey->deleteValue(originalName);
-            if (!_regKey->putValue(info)) {
-                continue;
-            }
-        }
         DWORD type = REG_BINARY;
         if (value.Has("type") && value.Get("type").IsString()) {
             type = getKeyTypeValue(value.Get("type").As<Napi::String>().Utf8Value());
@@ -669,7 +663,7 @@ Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
         
         if (data.IsNumber()) {
             Napi::Number number = data.As<Napi::Number>();
-            QWORD val = number.Int64Value();
+            QWORD val = abs(number.Int64Value());
             double dVal = number.DoubleValue();
             if (val == dVal)
             {

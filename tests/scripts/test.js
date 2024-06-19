@@ -36,7 +36,7 @@ values['test'] = { name: 'testStringList', data: ['testS1', 'testS2', 'testS3'] 
 
 testKey.putValues(values)
 console.log('after editing: ', testKey.getStringValues())
-console.log('testStringList: ', testKey.getMultiStringValue('testStringList'))
+console.log('String Lists: ', testKey.getMultiStringValues())
 
 if (testKey.deleteKey()) {
   console.log('Delete HKCU/Software/testKey Success!')
