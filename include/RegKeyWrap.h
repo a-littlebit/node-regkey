@@ -77,6 +77,8 @@ public:
   Napi::Value isSubkeyWriteable(const Napi::CallbackInfo &info);
 
 private:
+  static void _throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value);
+
   std::shared_ptr<RegKey> _regKey;
   std::string _path;
 

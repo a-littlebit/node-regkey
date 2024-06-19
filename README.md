@@ -103,6 +103,30 @@ The 'mapByName' option means to turn the result into a map from a key's name to 
 
 The 'type' option supports String, Number, Buffer and Array(for REG_MULTI_SZ)
 
+#### Handle an error
+
+When necessary, a RegKey function may throw a RegKeyError:
+
+```
+const errorVal = ms.getStringValue('A-nonexistent-value')
+```
+
+You may get an error like the following
+
+```
+RegKeyError: Failed to get value
+    at Object.<anonymous> (path\to\your\source\index.js:4:21)
+    at Module._compile (node:internal/modules/cjs/loader:1369:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1427:10)
+    at Module.load (node:internal/modules/cjs/loader:1206:32)
+    at Module._load (node:internal/modules/cjs/loader:1022:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
+    at node:internal/main/run_main_module:28:49 {
+  key: RegKey {},
+  value: 'A-nonexistent-value'
+}
+```
+
 #### Close a key
 
 The key will automatically close when the JavaScript object is released

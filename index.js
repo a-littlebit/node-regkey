@@ -1,5 +1,16 @@
 const build = require("node-gyp-build")
 
+class RegKeyError extends Error {
+  constructor(message, key, value) {
+    super(message)
+    this.name = 'RegKeyError'
+    this.key = key
+    this.value = value
+
+    Error.captureStackTrace(this, RegKeyError)
+  }
+}
+
 const RegValueType = {
   REG_SZ                          : 'REG_SZ',
   REG_EXPAND_SZ                   : 'REG_EXPAND_SZ',
@@ -22,6 +33,8 @@ if (process.platform === "win32") {
   regkey = build(__dirname)
 
   const RegKey = regkey.RegKey
+
+  RegKey.prototype.__RegKeyError__ = RegKeyError
 
   RegKey.prototype.getValue = function getValue(name, options) {
     if (!options) {

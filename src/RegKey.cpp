@@ -266,9 +266,11 @@ std::list<ValueInfo> RegKey::getValues() const
 
         if (valueSize > 0) {
             byte* valueData = new byte[valueSize];
-            if (RegQueryValueExA(_hKey, valueInfo.name.c_str(), NULL, NULL, (LPBYTE)valueData, &valueSize) == ERROR_SUCCESS) {
-                valueInfo.data.assign(valueData, valueData + valueSize);
+            if (RegQueryValueExA(_hKey, valueInfo.name.c_str(), NULL, NULL, (LPBYTE)valueData, &valueSize) != ERROR_SUCCESS) {
+                delete[] valueData;
+                continue;
             }
+            valueInfo.data.assign(valueData, valueData + valueSize);
             delete[] valueData;
         }
         values.push_back(valueInfo);

@@ -289,9 +289,16 @@ Napi::Value RegKeyWrap::getBufferValue(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
-        ByteArray buffer = _regKey->getBinaryValue(valueName);
-        auto res = Napi::Buffer<BYTE>::Copy(info.Env(), buffer.data(), buffer.size());
-        return res;
+        bool success = false;
+        ByteArray buffer = _regKey->getBinaryValue(valueName, &success);
+        if (!success) {
+            _throwRegKeyError(info, "Failed to get value", valueName);
+            return info.Env().Undefined();
+        }
+        if (buffer.empty()) {
+            return Napi::Buffer<BYTE>::New(info.Env(), 0);
+        }
+        return Napi::Buffer<BYTE>::Copy(info.Env(), buffer.data(), buffer.size());
     } else {
         throw Napi::TypeError::New(info.Env(), "Value Name Expected");
     }
@@ -305,7 +312,13 @@ Napi::Value RegKeyWrap::getStringValue(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
-        return Napi::String::New(info.Env(), _regKey->getStringValue(valueName));
+        bool success = false;
+        std::string value = _regKey->getStringValue(valueName, &success);
+        if (!success) {
+            _throwRegKeyError(info, "Failed to get value", valueName);
+            return info.Env().Undefined();
+        }
+        return Napi::String::New(info.Env(), value);
     } else {
         throw Napi::TypeError::New(info.Env(), "Value Name Expected");
     }
@@ -342,7 +355,8 @@ Napi::Value RegKeyWrap::getNumberValue(const Napi::CallbackInfo &info)
             try {
                 return Napi::Number::New(info.Env(), std::stod(sVal));
             } catch (std::invalid_argument &) {
-                throw Napi::TypeError::New(info.Env(), "Value is not a Number");
+                _throwRegKeyError(info, "Failed to get value", valueName);
+                return info.Env().Undefined();
             }
         }
 
@@ -359,7 +373,12 @@ Napi::Value RegKeyWrap::getMultiStringValue(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
-        auto values = _regKey->getMultiStringValue(valueName);
+        bool success = false;
+        auto values = _regKey->getMultiStringValue(valueName, &success);
+        if (!success) {
+            _throwRegKeyError(info, "Failed to get value", valueName);
+            return info.Env().Undefined();
+        }
         Napi::Array results = Napi::Array::New(info.Env());
         int i = 0;
         for (auto it = values.begin(); it != values.end(); it++, i++) {
@@ -841,5 +860,19 @@ Napi::Value RegKeyWrap::isSubkeyWriteable(const Napi::CallbackInfo &info)
         return Napi::Boolean::New(info.Env(), _regKey->isSubkeyWriteable(keyName));
     } else {
         throw Napi::TypeError::New(info.Env(), "Subkey Name shuold be a String");
+    }
+}
+
+void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value)
+{
+    // 从 prototype 获取 __RegKeyError__ 构造函数
+    Napi::Object thisObj = info.This().As<Napi::Object>();
+    Napi::Value regKeyError = thisObj.Get("__RegKeyError__");
+    if (regKeyError.IsFunction()) {
+        Napi::Function regKeyErrorCons = regKeyError.As<Napi::Function>();
+        throw regKeyErrorCons.New({
+                Napi::String::New(info.Env(), message),
+                thisObj, Napi::String::New(info.Env(), value)
+            }).As<Napi::Error>();
     }
 }
