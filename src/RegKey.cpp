@@ -159,11 +159,13 @@ std::string RegKey::getStringValue(const std::string &valueName, bool *success) 
         }
         return "";
     }
-    std::string value(valueSize, '\0');
-    bool res = (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, (LPBYTE)value.data(), &valueSize) == ERROR_SUCCESS);
+    char *valueData = new char[valueSize];
+    bool res = (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, (LPBYTE)valueData, &valueSize) == ERROR_SUCCESS);
     if (success != NULL)
         *success = res;
 
+    std::string value = valueData;
+    delete[] valueData;
     return value;
 }
 
