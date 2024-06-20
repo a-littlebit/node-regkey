@@ -130,6 +130,13 @@ RegKeyError: Failed to get value
 
 The 'lastErrorCode' field is the value returned by GetLastError()
 
+If you don't want to receive a RegKeyError even if a function failed, use disableRegKeyErrors
+
+```
+const { disableRegKeyErrors } = require('regkey')
+disableRegKeyErrors()
+```
+
 #### Close a key
 
 The key will automatically close when the JavaScript object is released

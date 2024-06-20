@@ -293,7 +293,7 @@ Napi::Value RegKeyWrap::getBufferValue(const Napi::CallbackInfo &info)
         ByteArray buffer = _regKey->getBinaryValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
-            return info.Env().Undefined();
+            return info.Env().Null();
         }
         if (buffer.empty()) {
             return Napi::Buffer<BYTE>::New(info.Env(), 0);
@@ -316,7 +316,7 @@ Napi::Value RegKeyWrap::getStringValue(const Napi::CallbackInfo &info)
         std::string value = _regKey->getStringValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
-            return info.Env().Undefined();
+            return info.Env().Null();
         }
         return Napi::String::New(info.Env(), value);
     } else {
@@ -356,7 +356,7 @@ Napi::Value RegKeyWrap::getNumberValue(const Napi::CallbackInfo &info)
                 return Napi::Number::New(info.Env(), std::stod(sVal));
             } catch (std::invalid_argument &) {
                 _throwRegKeyError(info, "Failed to get value", valueName);
-                return info.Env().Undefined();
+                return info.Env().Null();
             }
         }
 
@@ -377,7 +377,7 @@ Napi::Value RegKeyWrap::getMultiStringValue(const Napi::CallbackInfo &info)
         auto values = _regKey->getMultiStringValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
-            return info.Env().Undefined();
+            return info.Env().Null();
         }
         Napi::Array results = Napi::Array::New(info.Env());
         int i = 0;

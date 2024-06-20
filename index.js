@@ -37,6 +37,10 @@ if (process.platform === "win32") {
 
   RegKey.prototype.__RegKeyError__ = RegKeyError
 
+  regkey.disableRegKeyErrors = function disableRegKeyErrors() {
+    RegKey.prototype.__RegKeyError__ = null
+  }
+
   RegKey.prototype.getValue = function getValue(name, options) {
     if (!options) {
       options = {}

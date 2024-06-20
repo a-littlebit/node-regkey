@@ -102,6 +102,8 @@ export declare class RegKey {
   isSubkeyWritable(name: string): boolean;
 }
 
+export declare function disableRegKeyErrors(): undefined;
+
 export declare const hkcr: RegKey;
 export declare const hkcu: RegKey;
 export declare const hklm: RegKey;

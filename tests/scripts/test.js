@@ -38,7 +38,8 @@ testKey.putValues(values)
 console.log('after editing: ', testKey.getStringValues())
 console.log('String Lists: ', testKey.getMultiStringValues())
 
-// testKey.getStringValue('try an error')
+reg.disableRegKeyErrors()
+console.log('error value: ', testKey.getStringValue('try an error'))
 
 if (testKey.deleteKey()) {
   console.log('Delete HKCU/Software/testKey Success!')
