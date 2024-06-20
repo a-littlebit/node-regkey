@@ -164,7 +164,7 @@ std::string RegKey::getStringValue(const std::string &valueName, bool *success) 
     if (success != NULL)
         *success = res;
 
-    std::string value = valueData;
+    std::string value = res ? valueData : "";
     delete[] valueData;
     return value;
 }
@@ -234,9 +234,11 @@ std::list<std::string> RegKey::getMultiStringValue(const std::string &valueName,
     char *valueData = new char[valueSize];
     char *p = valueData;
     bool res = (RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, (LPBYTE)valueData, &valueSize) == ERROR_SUCCESS);
-    while (p < valueData + valueSize - 1) {
-        values.push_back(p);
-        p += strlen(p) + 1;
+    if (res) {
+        while (p < valueData + valueSize - 1) {
+            values.push_back(p);
+            p += strlen(p) + 1;
+        }
     }
     delete[] valueData;
     if (success != NULL)
@@ -346,15 +348,14 @@ bool RegKey::setMultiStringValue(const std::string &valueName, const std::list<s
     if (_hKey == NULL)
         return false;
 
-    size_t size = 0;
+    size_t size = 1;
     for (auto it = value.begin(); it != value.end(); it++) {
         size += it->size() + 1;
     }
-    size++;
     char *valueData = new char[size];
     char *p = valueData;
     for (auto it = value.begin(); it != value.end(); it++) {
-        strcpy(p, it->c_str());
+        strcpy_s(p, it->size() + 1, it->c_str());
         p += it->size() + 1;
     }
     *p = '\0';
@@ -371,8 +372,7 @@ int RegKey::putValues(const std::list<ValueInfo> &values)
 
     int successCount = 0;
     for (auto it = values.begin(); it != values.end(); it++) {
-        const ValueInfo &valueInfo = *it;
-        if (setBinaryValue(valueInfo.name, valueInfo.data.data(), valueInfo.data.size(), valueInfo.type)) {
+        if (RegSetValueExA(_hKey, it->name.c_str(), 0, it->type, it->data.data(), it->data.size()) == ERROR_SUCCESS) {
             successCount++;
         }
     }
@@ -426,7 +426,7 @@ bool RegKey::deleteSubkey(const std::string &subkeyName)
     if (_hKey == NULL)
         return false;
 
-    return RegDeleteKeyA(_hKey, subkeyName.c_str()) == ERROR_SUCCESS;
+    return RegDeleteTreeA(_hKey, subkeyName.c_str()) == ERROR_SUCCESS;
 }
 
 bool RegKey::hasValue(const std::string &valueName) const
@@ -438,13 +438,13 @@ bool RegKey::hasValue(const std::string &valueName) const
     return RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, NULL, &valueSize) == ERROR_SUCCESS;
 }
 
-bool RegKey::isSubkeyWriteable(const std::string &valueName) const
+bool RegKey::isWritable() const
 {
     if (_hKey == NULL)
         return false;
 
     HKEY hKey = NULL;
-    if (RegOpenKeyExA(_hKey, valueName.c_str(), 0, KEY_WRITE | KEY_WOW64_64KEY, &hKey) != ERROR_SUCCESS) {
+    if (RegOpenKeyExA(_hKey, NULL, 0, KEY_WRITE, &hKey) != ERROR_SUCCESS) {
         return false;
     }
     RegCloseKey(hKey);

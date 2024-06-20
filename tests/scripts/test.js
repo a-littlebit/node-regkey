@@ -10,6 +10,7 @@ if (!ms) {
 console.log('Values of HKCU/Software/Microsoft:\n', ms.getBufferValues())
 console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 
+console.log("ms writable: ", ms.isWritable())
 ms.close()
 
 const testKey = reg.hkcu.createSubkey('Software/testKey')
@@ -40,6 +41,8 @@ console.log('String Lists: ', testKey.getMultiStringValues())
 
 reg.disableRegKeyErrors()
 console.log('error value: ', testKey.getStringValue('try an error'))
+
+console.log("testKey writable: ", testKey.isWritable())
 
 if (testKey.deleteKey()) {
   console.log('Delete HKCU/Software/testKey Success!')

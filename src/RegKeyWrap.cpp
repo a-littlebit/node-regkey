@@ -167,7 +167,8 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
             InstanceMethod("createSubkey", &RegKeyWrap::createSubkey),
             InstanceMethod("deleteSubkey", &RegKeyWrap::deleteSubkey),
             InstanceMethod("getSubkeyNames", &RegKeyWrap::getSubkeyNames),
-            InstanceMethod("hasSubkey", &RegKeyWrap::hasSubkey)
+            InstanceMethod("hasSubkey", &RegKeyWrap::hasSubkey),
+            InstanceMethod("isWritable", &RegKeyWrap::isWritable)
         });
 
     constructor = Napi::Persistent(func);
@@ -274,7 +275,7 @@ Napi::Value RegKeyWrap::copyTree(const Napi::CallbackInfo &info)
 
     if (info[0].IsObject()
         && info[0].As<Napi::Object>().InstanceOf(RegKeyWrap::constructor.Value())) {
-        RegKeyWrap * pRegKeyWrap = Napi::ObjectWrap<RegKeyWrap>::Unwrap(info[0].As<Napi::Object>());
+        RegKeyWrap *pRegKeyWrap = Napi::ObjectWrap<RegKeyWrap>::Unwrap(info[0].As<Napi::Object>());
         return Napi::Boolean::New(info.Env(), _regKey->copyTree(pRegKeyWrap->_regKey->getHandle()));
     } else {
         throw Napi::TypeError::New(info.Env(), "Invalid Source Key");
@@ -589,12 +590,12 @@ Napi::Value RegKeyWrap::setNumberValue(const Napi::CallbackInfo &info)
 
     Napi::Number value = info[1].As<Napi::Number>();
 
-    QWORD val = abs(value.Int64Value());
+    QWORD qVal = abs(value.Int64Value());
     double dVal = value.DoubleValue();
-    if (val == dVal) {
+    if (qVal == dVal) {
         return Napi::Boolean::New(info.Env(), _regKey->setQwordValue(
                                                   info[0].As<Napi::String>().Utf8Value(),
-                                                  val
+                                                  qVal
                                                 ));
     } else {
         // 转化为字符串存储
@@ -688,11 +689,11 @@ Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
             }
         } else if (items[i].data.IsNumber()) {
             Napi::Number number = items[i].data.As<Napi::Number>();
-            QWORD val = abs(number.Int64Value());
+            QWORD qVal = abs(number.Int64Value());
             double dVal = number.DoubleValue();
-            if (val == dVal)
+            if (qVal == dVal)
             {
-                if (info.Env(), _regKey->setQwordValue(items[i].name, val)) {
+                if (info.Env(), _regKey->setQwordValue(items[i].name, qVal)) {
                     success = true;
                 }
             }
@@ -860,18 +861,9 @@ Napi::Value RegKeyWrap::hasSubkey(const Napi::CallbackInfo &info)
     }
 }
 
-Napi::Value RegKeyWrap::isSubkeyWriteable(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::isWritable(const Napi::CallbackInfo &info)
 {
-    if (info.Length() < 1) {
-        throw Napi::TypeError::New(info.Env(), "Subkey Expected");
-    }
-
-    if (info[0].IsString()) {
-        std::string keyName = info[0].As<Napi::String>().Utf8Value();
-        return Napi::Boolean::New(info.Env(), _regKey->isSubkeyWriteable(keyName));
-    } else {
-        throw Napi::TypeError::New(info.Env(), "Subkey Name shuold be a String");
-    }
+    return Napi::Boolean::New(info.Env(), _regKey->isWritable());
 }
 
 void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value)

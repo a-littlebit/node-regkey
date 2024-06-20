@@ -99,7 +99,7 @@ export declare class RegKey {
   deleteSubkey(name: string): boolean;
   getSubkeyNames(): string[];
   hasSubkey(name: string): boolean;
-  isSubkeyWritable(name: string): boolean;
+  isWritable(): boolean;
 }
 
 export declare function disableRegKeyErrors(): undefined;

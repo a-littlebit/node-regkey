@@ -74,7 +74,7 @@ public:
 
   Napi::Value hasSubkey(const Napi::CallbackInfo &info);
 
-  Napi::Value isSubkeyWriteable(const Napi::CallbackInfo &info);
+  Napi::Value isWritable(const Napi::CallbackInfo &info);
 
 private:
   static void _throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value);
