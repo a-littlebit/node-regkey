@@ -2,6 +2,17 @@
   "name": "regkey",
   "version": "1.4.5",
   "description": "Provide Windows registry key access for Node.js using the native Windows API.",
+  "keywords": [
+    "registry",
+    "Windows",
+    "win32"
+  ],
+  "author": "vvcoder",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/a-littlebit/node-regkey.git"
+  },
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
@@ -14,13 +25,6 @@
     "prebuild:x64": "prebuildify --strip --napi --platform=win32 --arch=x64",
     "clean-prebuilds": "rmdir /s /q prebuilds"
   },
-  "keywords": [
-    "registry",
-    "Windows",
-    "win32"
-  ],
-  "author": "vvcoder",
-  "license": "BSD",
   "dependencies": {
     "node-addon-api": "^8.0.0",
     "node-gyp-build": "^4.8.1"
@@ -29,8 +33,5 @@
     "runtime": "node",
     "runtimeVersion": "12.16.3",
     "arch": "x64"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.5"
   }
 }
