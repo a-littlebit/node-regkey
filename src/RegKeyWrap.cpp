@@ -635,88 +635,99 @@ Napi::Value RegKeyWrap::putValues(const Napi::CallbackInfo &info)
         throw Napi::TypeError::New(info.Env(), "Values Expected");
     }
 
-    Napi::Array values;
+    struct PutValueItem {
+        std::string originalName;
+        std::string name;
+        DWORD type;
+        Napi::Value data;
+    };
+
+    std::vector<PutValueItem> items;
     if (info[0].IsArray()) {
-        values = info[0].As<Napi::Array>();
+        Napi::Array values = info[0].As<Napi::Array>();
+        items.resize(values.Length());
+        for (uint32_t i = 0; i < values.Length(); i++) {
+            Napi::Object value = values.Get(i).As<Napi::Object>();
+            items[i].name = value.Get("name").As<Napi::String>().Utf8Value();
+            items[i].type = REG_BINARY;
+            if (value.Has("type") && value.Get("type").IsString()) {
+                items[i].type = getKeyTypeValue(value.Get("type").As<Napi::String>().Utf8Value());
+            }
+            items[i].data = value.Get("data");
+        }
     } else {
         Napi::Object valuesObj = info[0].As<Napi::Object>();
-        values = valuesObj.GetPropertyNames();
+        Napi::Array values = valuesObj.GetPropertyNames();
+        items.resize(values.Length());
         for (uint32_t i = 0; i < values.Length(); i++) {
             Napi::Object value = valuesObj.Get(values.Get(i)).As<Napi::Object>();
-            if (!values.Get(i).StrictEquals(value.Get("name"))) {
-                _regKey->deleteValue(values.Get(i).As<Napi::String>().Utf8Value());
+            items[i].originalName = values.Get(i).As<Napi::String>().Utf8Value();
+            items[i].name = value.Get("name").As<Napi::String>().Utf8Value();
+            items[i].type = REG_BINARY;
+            if (value.Has("type") && value.Get("type").IsString()) {
+                items[i].type = getKeyTypeValue(value.Get("type").As<Napi::String>().Utf8Value());
             }
-            values.Set(i, value);
+            items[i].data = value.Get("data");
         }
     }
-    int success = 0;
-    for (uint32_t i = 0; i < values.Length(); i++) {
-        if (!values.Get(i).IsObject()) {
-            continue;
+    int successCount = 0;
+    for (uint32_t i = 0; i < items.size(); i++) {
+        bool success = false;
+        if (items[i].name.empty()) {
+            items[i].name = items[i].originalName;
         }
 
-        Napi::Object value = values.Get(i).As<Napi::Object>();
-        std::string name = value.Get("name").As<Napi::String>().Utf8Value();
-        DWORD type = REG_BINARY;
-        if (value.Has("type") && value.Get("type").IsString()) {
-            type = getKeyTypeValue(value.Get("type").As<Napi::String>().Utf8Value());
-        }
-        Napi::Value data = value.Get("data");
-
-
-        if (data.IsBuffer()) {
-            Napi::Buffer<byte> bufferData = data.As<Napi::Buffer<byte>>();
-            if (_regKey->setBinaryValue(name, bufferData.Data(), bufferData.Length(), type)) {
-                success++;
+        if (items[i].data.IsBuffer()) {
+            Napi::Buffer<byte> bufferData = items[i].data.As<Napi::Buffer<byte>>();
+            if (_regKey->setBinaryValue(items[i].name, bufferData.Data(), bufferData.Length(), items[i].type)) {
+                success = true;
             }
-            continue;
-        }
-
-        // 支持值类型转换
-        if (data.IsString()) {
-            if (_regKey->setStringValue(name, data.As<Napi::String>().Utf8Value())) {
-                success++;
+        } else if (items[i].data.IsString()) {
+            if (_regKey->setStringValue(items[i].name, items[i].data.As<Napi::String>().Utf8Value())) {
+                success = true;
             }
-            continue;
-        }
-        
-        if (data.IsNumber()) {
-            Napi::Number number = data.As<Napi::Number>();
+        } else if (items[i].data.IsNumber()) {
+            Napi::Number number = items[i].data.As<Napi::Number>();
             QWORD val = abs(number.Int64Value());
             double dVal = number.DoubleValue();
             if (val == dVal)
             {
-                if (info.Env(), _regKey->setQwordValue(name, val)) {
-                    success++;
+                if (info.Env(), _regKey->setQwordValue(items[i].name, val)) {
+                    success = true;
                 }
             }
             else
             {
                 // 转化为字符串存储
                 std::string sVal = std::to_string(dVal);
-                if (info.Env(), _regKey->setStringValue(name, sVal)) {
-                    success++;
+                if (info.Env(), _regKey->setStringValue(items[i].name, sVal)) {
+                    success = true;
                 }
             }
-            continue;
-        }
-
-        if (data.IsArray()) {
-            Napi::Array arrayData = data.As<Napi::Array>();
+        } else if (items[i].data.IsArray()) {
+            Napi::Array arrayData = items[i].data.As<Napi::Array>();
             std::list<std::string> data;
             for (uint32_t i = 0; i < arrayData.Length(); i++) {
                 if (arrayData.Get(i).IsString()) {
                     data.push_back(arrayData.Get(i).As<Napi::String>().Utf8Value());
                 }
             }
-            if (_regKey->setMultiStringValue(name, data)) {
-                success++;
+            if (_regKey->setMultiStringValue(items[i].name, data)) {
+                success = true;
             }
+        } else {
             continue;
+        }
+
+        if (success) {
+            successCount++;
+            if (!items[i].originalName.empty() && items[i].originalName != items[i].name) {
+                _regKey->deleteValue(items[i].originalName);
+            }
         }
     }
 
-    return Napi::Number::New(info.Env(), success);
+    return Napi::Number::New(info.Env(), successCount);
 }
 
 Napi::Value RegKeyWrap::deleteValue(const Napi::CallbackInfo &info)

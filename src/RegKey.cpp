@@ -250,31 +250,36 @@ std::list<ValueInfo> RegKey::getValues() const
     if (_hKey == NULL)
         return {};
 
+    DWORD maxName = 0, maxValue = 0;
+    RegQueryInfoKeyA(_hKey, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &maxName, &maxValue, NULL, NULL);
+    maxName++;
+
     std::list<ValueInfo> values;
+    char *valueName = new char[maxName];
+    byte *valueData = new byte[maxValue];
+
     for (DWORD index = 0; ; index++) {
         ValueInfo valueInfo;
-        DWORD valueNameSize = MAX_VALUE_NAME;
-        char *valueName = new char[valueNameSize];
+        DWORD valueNameSize = maxName;
         valueInfo.type = REG_NONE;
         DWORD valueSize = 0;
         if (RegEnumValueA(_hKey, index, valueName, &valueNameSize, NULL, &valueInfo.type, NULL, &valueSize) != ERROR_SUCCESS) {
-            delete[] valueName;
             break;
         }
         valueInfo.name = valueName;
-        delete[] valueName;
 
         if (valueSize > 0) {
-            byte* valueData = new byte[valueSize];
             if (RegQueryValueExA(_hKey, valueInfo.name.c_str(), NULL, NULL, (LPBYTE)valueData, &valueSize) != ERROR_SUCCESS) {
-                delete[] valueData;
                 continue;
             }
             valueInfo.data.assign(valueData, valueData + valueSize);
-            delete[] valueData;
         }
         values.push_back(valueInfo);
     }
+
+    delete[] valueData;
+    delete[] valueName;
+
     return values;
 }
 
@@ -282,11 +287,12 @@ std::list<std::string> RegKey::getValueNames() const
 {
     if (_hKey == NULL)
         return std::list<std::string>();
-        
+
     std::list<std::string> valueNames;
+    char valueName[MAX_VALUE_NAME];
+    DWORD valueNameSize;
     for (DWORD index = 0; ; index++) {
-        char valueName[MAX_VALUE_NAME];
-        DWORD valueNameSize = MAX_VALUE_NAME;
+        valueNameSize = MAX_VALUE_NAME;
         if (RegEnumValueA(_hKey, index, valueName, &valueNameSize, nullptr, nullptr, nullptr, nullptr) != ERROR_SUCCESS)
             break;
         valueNames.push_back(valueName);
