@@ -478,8 +478,8 @@ std::list<std::string> RegKey::getSubkeyNames() const
         return std::list<std::string>();
 
     std::list<std::string> subkeyNames;
+    char subkeyName[MAX_VALUE_NAME];
     for (DWORD index = 0; ; index++) {
-        char subkeyName[MAX_VALUE_NAME];
         if (RegEnumKeyA(_hKey, index, subkeyName, MAX_VALUE_NAME) != ERROR_SUCCESS)
             break;
         subkeyNames.push_back(subkeyName);
