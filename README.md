@@ -161,7 +161,7 @@ If the key already exists, it will be directly opened
 // setting one
 myKey.setStringValue('myValName', 'myValData')
 // setting an array
-myKey.applyValues([
+myKey.putValues([
   {
     name: 'val-1',
     data: 'a string' // As REG_SZ  
@@ -173,7 +173,7 @@ myKey.applyValues([
 ])
 ```
 
-Delete the key
+#### Delete the key
 
 ```
 if (!myKey.deleteKey()) {

@@ -102,7 +102,7 @@ export declare class RegKey {
   isWritable(): boolean;
 }
 
-export declare function disableRegKeyErrors(): undefined;
+export declare function disableRegKeyErrors(disabled: boolean): undefined;
 
 export declare const hkcr: RegKey;
 export declare const hkcu: RegKey;
