@@ -12,7 +12,7 @@ public:
 
   /// Basic Attributes
 
-  Napi::Value isValid(const Napi::CallbackInfo &info);
+  Napi::Value isOpen(const Napi::CallbackInfo &info);
 
   Napi::Value getPath(const Napi::CallbackInfo &info);
 
@@ -22,43 +22,37 @@ public:
 
   Napi::Value close(const Napi::CallbackInfo &info);
 
-  Napi::Value copyTree(const Napi::CallbackInfo &info);
+  Napi::Value copy(const Napi::CallbackInfo &info);
 
   // Value Operations
 
-  Napi::Value getBufferValue(const Napi::CallbackInfo &info);
+  Napi::Value getBinaryValue(const Napi::CallbackInfo &info);
 
   Napi::Value getStringValue(const Napi::CallbackInfo &info);
 
-  Napi::Value getNumberValue(const Napi::CallbackInfo &info);
-
   Napi::Value getMultiStringValue(const Napi::CallbackInfo &info);
 
-  Napi::Value getBufferValues(const Napi::CallbackInfo &info);
+  Napi::Value getDwordValue(const Napi::CallbackInfo &info);
 
-  Napi::Value getStringValues(const Napi::CallbackInfo &info);
-
-  Napi::Value getNumberValues(const Napi::CallbackInfo &info);
-
-  Napi::Value getMultiStringValues(const Napi::CallbackInfo &info);
+  Napi::Value getQwordValue(const Napi::CallbackInfo &info);
 
   Napi::Value getValueType(const Napi::CallbackInfo &info);
 
   Napi::Value hasValue(const Napi::CallbackInfo &info);
 
-  Napi::Value setBufferValue(const Napi::CallbackInfo &info);
+  Napi::Value getValueNames(const Napi::CallbackInfo &info);
+
+  Napi::Value setBinaryValue(const Napi::CallbackInfo &info);
 
   Napi::Value setStringValue(const Napi::CallbackInfo &info);
 
-  Napi::Value setNumberValue(const Napi::CallbackInfo &info);
-
-  Napi::Value putValues(const Napi::CallbackInfo &info);
-
   Napi::Value setMultiStringValue(const Napi::CallbackInfo &info);
 
-  Napi::Value deleteValue(const Napi::CallbackInfo &info);
+  Napi::Value setDwordValue(const Napi::CallbackInfo &info);
 
-  Napi::Value getValueNames(const Napi::CallbackInfo &info);
+  Napi::Value setQwordValue(const Napi::CallbackInfo &info);
+
+  Napi::Value deleteValue(const Napi::CallbackInfo &info);
 
   // Key Operations
 

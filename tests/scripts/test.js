@@ -1,52 +1,37 @@
 const reg = require('../../index.js')
 
-const ms = new reg.RegKey('HKCU', 'Software/Microsoft')
-
+const ms = reg.hkcu.openSubkey('Software/Microsoft')
 if (!ms) {
-  console.log('Opening HKCU/Software/Microsoft Failed!')
+  console.log('Microsoft registry key not found')
   process.exit(1)
 }
 
-console.log('Values of HKCU/Software/Microsoft:\n', ms.getBufferValues())
-console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
-
-console.log("ms writable: ", ms.isWritable())
+console.log('ms subkeys:\n', ms.getSubkeyNames())
 ms.close()
 
-const testKey = reg.hkcu.createSubkey('Software/testKey')
+const testKey = reg.hkcu.createSubkey('Software/TestKey')
 if (!testKey) {
-  console.log('Creating HKCU/Software/testKey Failed!')
+  console.log('Failed to create TestKey')
   process.exit(1)
 }
 
-for (let i = 0; i < 5; i++) {
-  testKey.setBufferValue('testName' + i, Buffer.from('testVal'), reg.RegValueType.REG_SZ)
+for (let i = 0; i < 10; i++) {
+  testKey.setStringValue('test-str-' + i, 'test-val-' + i)
 }
 
-const values = testKey.getValues({
-  type: String,
-  mapByName: true
-})
-console.log('before editing: ', values)
+for (let i = 0; i < 10; i++) {
+  testKey.setDwordValue('test-dword-' + i, 10 - i)
+}
 
-Object.keys(values).forEach((v, i) => {
-  values[v].data = values[v].data + i
-})
+const newVal = testKey.newValue('newVal')
+newVal.set('test-str-buffer', reg.RegValueType.REG_BINARY)
 
-values['test'] = { name: 'testStringList', data: ['testS1', 'testS2', 'testS3'] }
-
-testKey.putValues(values)
-console.log('after editing: ', testKey.getStringValues())
-console.log('String Lists: ', testKey.getMultiStringValues())
+console.log(testKey.values())
 
 reg.disableRegKeyErrors()
-console.log('error value: ', testKey.getStringValue('try an error'))
+testKey.getStringValue('nonexisten')
 
-console.log("testKey writable: ", testKey.isWritable())
-
-if (testKey.deleteKey()) {
-  console.log('Delete HKCU/Software/testKey Success!')
-} else {
-  console.log('Delete HKCU/Software/testKey Failed!')
+if (!testKey.delete()) {
+  console.log('Failed to delete TestKey')
   console.warn('Try delete it manually!')
 }

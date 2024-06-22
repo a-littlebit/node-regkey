@@ -1,6 +1,6 @@
 {
   "name": "regkey",
-  "version": "1.4.7",
+  "version": "2.0.0",
   "description": "Provide Windows registry key access for Node.js using the native Windows API.",
   "keywords": [
     "registry",
@@ -17,7 +17,7 @@
   "types": "index.d.ts",
   "scripts": {
     "install": "node-gyp-build",
-    "test": "node ./tests/scripts/test.js",
+    "test": "node --trace-warnings ./tests/scripts/test.js",
     "build:debug": "cmake-js build --debug",
     "build:release": "cmake-js build --release",
     "clean": "cmake-js clean",

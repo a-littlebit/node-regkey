@@ -1,0 +1,160 @@
+const path = require('path')
+const util = require('util')
+
+const { throwRegKeyError } = require('./Error')
+const { getLastError } = require("node-gyp-build")(path.join(__dirname, ".."))
+
+const RegValueType = {
+  REG_SZ                          : 'REG_SZ',
+  REG_EXPAND_SZ                   : 'REG_EXPAND_SZ',
+  REG_BINARY                      : 'REG_BINARY',
+  REG_DWORD                       : 'REG_DWORD',
+  REG_DWORD_LITTLE_ENDIAN         : 'REG_DWORD_LITTLE_ENDIAN',
+  REG_DWORD_BIG_ENDIAN            : 'REG_DWORD_BIG_ENDIAN',
+  REG_QWORD                       : 'REG_QWORD',
+  REG_QWORD_LITTLE_ENDIAN         : 'REG_QWORD_LITTLE_ENDIAN',
+  REG_MULTI_SZ                    : 'REG_MULTI_SZ',
+  REG_RESOURCE_LIST               : 'REG_RESOURCE_LIST',
+  REG_FULL_RESOURCE_DESCRIPTOR    : 'REG_FULL_RESOURCE_DESCRIPTOR',
+  REG_RESOURCE_REQUIREMENTS_LIST  : 'REG_RESOURCE_REQUIREMENTS_LIST',
+  REG_NONE                        : 'REG_NONE'
+}
+
+class RegValue {
+  constructor(key, name) {
+    this.key = key
+    this.name = name
+  }
+
+  get(resultType) {
+    // if resultType is not specified, get the value type from the key
+    switch (resultType || this.key.getValueType(this.name)) {
+      case Number:
+        const type = this.key.getValueType(this.name)
+
+        switch (type) {
+          case RegValueType.REG_DWORD:
+            return this.key.getDwordValue(this.name)
+          
+          case RegValueType.REG_QWORD:
+            return this.key.getQwordValue(this.name)
+          
+          case RegValueType.REG_SZ:
+          case RegValueType.REG_EXPAND_SZ: {
+            return parseFloat(this.key.getStringValue(this.name))
+          }
+            
+          default:
+            return NaN
+        }
+      
+      case RegValueType.REG_DWORD:
+        return this.key.getDwordValue(this.name)
+      case RegValueType.REG_QWORD:
+        return this.key.getQwordValue(this.name)
+
+      case String:
+      case RegValueType.REG_SZ:
+      case RegValueType.REG_EXPAND_SZ:
+        return this.key.getStringValue(this.name)
+      
+      case Array:
+      case RegValueType.REG_MULTI_SZ:
+        return this.key.getMultiStringValue(this.name)
+      
+      case Buffer:
+        return this.key.getBinaryValue(this.name)
+      
+      default:
+        if (resultType) {
+          throwRegKeyError('Invalid result type', this.key, this.name, getLastError())
+        } else {
+          return this.key.getBinaryValue(this.name)
+        }
+    }
+  }
+
+  set(val, type) {
+    switch (typeof val) {
+      case 'number':
+        // 判断是否为整数
+        if (val % 1 === 0) {
+          return this.key.setQwordValue(this.name, val, type || RegValueType.REG_QWORD)
+        } else {
+          // convert to string
+          return this.key.setStringValue(this.name, val.toString(), RegValueType.REG_SZ)
+        }
+      case 'string':
+        return this.key.setStringValue(this.name, val, type || RegValueType.REG_SZ)
+      case 'object':
+        if (val instanceof Buffer) {
+          return this.key.setBinaryValue(this.name, val)
+        }
+        if (Array.isArray(val)) {
+          return this.key.setMultiStringValue(this.name, val, type || RegValueType.REG_MULTI_SZ)
+        }
+      default:
+        throwRegKeyError('Invalid value type', this.key, this.name, getLastError())
+    }
+  }
+
+  get type() {
+    return this.key.getValueType(this.name)
+  }
+
+  get exists() {
+    return this.key?.open && this.key.hasValue(this.name)
+  }
+
+  get value() {
+    return this.key.getStringValue(this.name)
+  }
+
+  set value(val) {
+    this.set(val)
+  }
+
+  get data() {
+    return this.key.getBinaryValue(this.name)
+  }
+
+  set data(val) {
+    this.set(val)
+  }
+  
+  delete() {
+    return this.key.deleteValue(this.name)
+  }
+
+  rename(newName) {
+    if (newName === this.name) {
+      return true
+    }
+    
+    if (this.key.hasValue(newName)) {
+      return false
+    }
+
+    if (this.key.setBinaryValue(newName, this.data, this.type)) {
+      this.key.deleteValue(this.name)
+      this.name = newName
+      return true
+    }
+    return false
+  }
+
+  [util.inspect.custom](depth, options) {
+    options.depth = depth
+    return util.inspect({
+      ...this,
+      value: this.get(),
+      type: this.type,
+      exists: this.exists
+    }, options)
+  }
+}
+
+module.exports = {
+  RegValue,
+  RegValueType
+}

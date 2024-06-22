@@ -1,51 +1,29 @@
-const reg = require('../index.js')
+const { hkcu } = require('../../index.js')
 
-const ms = reg.hkcu.openSubkey('Software/Microsoft')
-
-if (!ms) {
-  // Failed
-  console.log('Opening HKCU/Software/Microsoft Failed!')
+// if the key already exists, it will be directly opened
+const testKey = hkcu.createSubkey('Software/TestKey')
+if (!testKey) {
+  console.log('Failed to create TestKey')
   process.exit(1)
 }
 
-// Reading values
-console.log('Values of HKCU/Software/Microsoft:\n', ms.getBufferValues())
-// Reading Subkeys
-console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
-
-// Done
-// Auto close after the environment exit
-ms.close()
-
-// Creating a new key
-const myKey = reg.hkcu.createSubkey('Software/myKey')
-if (!myKey) {
-  console.log('Creating HKCU/Software/myKey Failed!')
-  process.exit(1)
+// directly setting values
+for (let i = 0; i < 10; i++) {
+  testKey.setStringValue('test-str-' + i, 'test-val-' + i)
 }
 
-// Writing values
-for (let i = 0; i < 5; i++) {
-  myKey.setStringValue('myValue' + i, 'string value')
+for (let i = 0; i < 10; i++) {
+  testKey.setDwordValue('test-dword-' + i, 10 - i)
 }
 
-// Read All String Values
-let values = myKey.getStringValues()
-console.log('before editing: ', values)
+// operating a value through a RegValue object
+const newVal = testKey.newValue('newVal')
+newVal.set('test-str-buffer', 'REG_BINARY')
 
-values = values.map((v, i) => {
-  v.data = v.data + ' ' + (i + 1)
-  return v
-})
+console.log(testKey.values())
 
-// Write Multiple Values
-myKey.putValues(values)
-console.log('after editing: ', myKey.getStringValues())
-
-// Delete a registry key
-if (myKey.deleteKey()) {
-  console.log('Delete HKCU/Software/myKey Success!')
-} else {
-  console.log('Delete HKCU/Software/myKey Failed!')
+// delete the key
+if (!testKey.delete()) {
+  console.log('Failed to delete TestKey')
   console.warn('Try delete it manually!')
 }

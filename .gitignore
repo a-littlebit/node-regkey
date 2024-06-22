@@ -4,5 +4,7 @@ build/
 # node modules
 node_modules/
 
-# pnpm
+# package manager
 pnpm-lock.yaml
+yarn.lock
+package-lock.json

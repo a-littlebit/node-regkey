@@ -1,7 +1,4 @@
-// Type definitions for node-regkey
-
-// Registry value types
-export enum RegValueType {
+export declare enum RegValueType {
   REG_SZ                          = 'REG_SZ',
   REG_EXPAND_SZ                   = 'REG_EXPAND_SZ',
   REG_BINARY                      = 'REG_BINARY',
@@ -17,98 +14,96 @@ export enum RegValueType {
   REG_NONE                        = 'REG_NONE'
 }
 
-// Registry key value info
-export interface RegValue {
-  name: string;
-  type?: RegValueType;
-  data: Buffer | string | number | Array<string>;
-}
-
-export interface RegBufferValue {
-  name: string;
-  type?: RegValueType | undefined;
-  data: Buffer;
-}
-
-export interface RegStringValue {
-  name: string;
-  type?: RegValueType | undefined;
-  data: string;
-}
-
-export interface RegNumberValue {
-  name: string;
-  type?: RegValueType | undefined;
-  data: number;
-}
-
-export interface RegMultiStringValue {
-  name: string;
-  type?: RegValueType | undefined;
-  data: Array<string>;
-}
-
-export interface GetValueOptions {
-  type?: Function;
-  mapByName?: boolean;
-}
-
-export interface ValueMap {
-  [key: string]: RegValue;
-}
-
 export declare class RegKey {
-  readonly path: string;
-  name: string;
+  constructor(...paths: string[])
 
-  constructor(...paths: string);
-
-  // Basic attributes
-  isValid(): boolean;
-  copyTree(source: string): boolean;
-  close(): void;
-
-  // Value Reading Operations
-  getValue(name: string, options?: GetValueOptions): RegValue;
-  getBufferValue(name: string): Buffer;
-  getStringValue(name: string): string;
-  getNumberValue(name: string): number;
-  getMultiStringValue(name: string): Array<string>;
-
-  // Multiple Value Reading Operations
-  getValues(options?: GetValueOptions): RegValue[] | ValueMap;
-  getBufferValues(): RegBufferValue[];
-  getStringValues(): RegStringValue[];
-  getNumberValues(): RegNumberValue[];
-  getMultiStringValues(): RegMultiStringValue[];
-  getValueType(name: string): RegValueType;
-  hasValue(name: string): boolean;
-
-  // Value Writing Operations
-  setBufferValue(name: string, data: Buffer, type?: RegValueType | undefined): boolean;
-  setStringValue(name: string, value: string): boolean;
-  setNumberValue(name: string, value: number): boolean;
-  setMultiStringValue(name: string, value: Array<string>): boolean;
-  putValues(values: RegValue[] | ValueMap): Number;
-  deleteValue(name: string): boolean;
+  readonly path: string
+  name: string
+  readonly open: boolean
   
-  // Key Operations
-  deleteKey(): boolean;
-  openSubkey(name: string): RegKey | null;
-  createSubkey(name: string): RegKey | null;
-  deleteSubkey(name: string): boolean;
-  getSubkeyNames(): string[];
-  hasSubkey(name: string): boolean;
-  isWritable(): boolean;
+  copy(src: RegKey): boolean
+  close(): void
+
+  value(name: string): RegValue
+  values(): RegValue[]
+
+  // returns null if setting new value fails
+  newValue(name: string,
+           val: string | string[] | number | Buffer,
+           type: RegValueType): RegValue | null
+           
+  getBinaryValue(name: string): Buffer
+  getStringValue(name: string): string
+  getMultiStringValue(name: string): string[]
+  getDwordValue(name: string): number
+  getQwordValue(name: string): number
+
+  getValueType(name: string): RegValueType
+  hasValue(name: string): boolean
+  getValueNames(): string[]
+
+  setBinaryValue(name: string, val: Buffer): boolean
+  setStringValue(name: string, val: string): boolean
+  setMultiStringValue(name: string, val: string[]): boolean
+  setDwordValue(name: string, val: number): boolean
+  setQwordValue(name: string, val: number): boolean
+  deleteValue(name: string): boolean
+
+  delete(): boolean
+  openSubkey(name: string): RegKey | null
+  createSubkey(name: string): RegKey | null
+  deleteSubkey(name: string): boolean
+  getSubkeyNames(): string[]
+  hasSubkey(name: string): boolean
+  isWritable(): boolean
 }
 
-export declare function disableRegKeyErrors(disabled: boolean): undefined;
+export declare class RegValue {
+  constructor(key: RegKey, name: string)
 
-export declare const hkcr: RegKey;
-export declare const hkcu: RegKey;
-export declare const hklm: RegKey;
-export declare const hku:  RegKey;
-export declare const hkcc: RegKey;
-export declare const hkpd: RegKey;
-export declare const hkpt: RegKey;
-export declare const hkpn: RegKey;
+  key: RegKey
+  name: string
+
+  readonly type: RegValueType
+  readonly exists: boolean
+
+  // read as string
+  value: string
+  // read as buffer
+  data: Buffer
+
+  // resultType shuold be one of String, Array, Number, Buffer
+  // the function may throw RegKeyError if disableRegKeyErrors() was not called
+  get(resultType: Function | undefined): string | string[] | number | Buffer
+
+  // if type is not specified, it will be inferred from val
+  set(val: string | string[] | number | Buffer, type: RegValueType | undefined): boolean
+
+  delete(): boolean
+  rename(newName: string): boolean
+}
+
+declare class RegKeyError extends Error {
+  constructor(message: string,
+              key: RegKey,
+              value: string,
+              lastErrorCode: number)
+
+  key: RegKey
+  value: string
+  lastErrorCode: number
+}
+
+export declare function disableRegKeyErrors(disabled: boolean | undefined): void
+
+// Equals to Windows API GetLastError()
+export declare function getLastError(): number
+
+export declare const hkcr: RegKey
+export declare const hkcu: RegKey
+export declare const hklm: RegKey
+export declare const hku : RegKey
+export declare const hkcc: RegKey
+export declare const hkpd: RegKey
+export declare const hkpt: RegKey
+export declare const hkpn: RegKey

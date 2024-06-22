@@ -56,88 +56,13 @@ const ms = new RegKey('HKCU/Software/Microsoft')
 const ms = new RegKey('HKCU', 'Software', 'Microsoft')
 ```
 
-#### Get the name of the subkeys
+#### Getting names of the subkeys
 
 ```
 console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 ```
 
-#### Get infomation of values
-
-```
-const values = ms.getValues()
-for (const value of values) {
-  console.log('name: ', value.name)
-  console.log('type: ', value.type)
-  console.log('data: ', value.data, '\n')
-}
-```
-
-The data field defaults to buffer. To get string data, use getStringValues
-
-```
-const values = ms.getStringValues()
-for (const value of values) {
-  console.log('name: ', value.name)
-  console.log('type: ', value.type)
-  console.log('data: ', value.data, '\n')
-}
-```
-
-Or you can use 'options' arg of function getValues
-
-```
-const values = ms.getValues({
-  type: String,
-  mapByName: true
-})
-
-Object.keys(values).forEach(name => {
-  console.log('name: ', name)
-  console.log('type: ', values[name].type)
-  console.log('data: ', values[name].data, '\n')
-})
-```
-
-The 'mapByName' option means to turn the result into a map from a key's name to the key
-
-The 'type' option supports String, Number, Buffer and Array(for REG_MULTI_SZ)
-
-#### Handle an error
-
-When necessary, a RegKey function may throw a RegKeyError:
-
-```
-const errorVal = ms.getStringValue('A-nonexistent-value')
-```
-
-You may get an error like the following
-
-```
-RegKeyError: Failed to get value
-    at Object.<anonymous> (path\to\your\source\index.js:4:21)
-    at Module._compile (node:internal/modules/cjs/loader:1369:14)
-    at Module._extensions..js (node:internal/modules/cjs/loader:1427:10)
-    at Module.load (node:internal/modules/cjs/loader:1206:32)
-    at Module._load (node:internal/modules/cjs/loader:1022:12)
-    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:135:12)
-    at node:internal/main/run_main_module:28:49 {
-  key: RegKey {},
-  value: 'A-nonexistent-value',
-  lastErrorCode: 203
-}
-```
-
-The 'lastErrorCode' field is the value returned by GetLastError()
-
-If you don't want to receive a RegKeyError even if a function failed, use disableRegKeyErrors
-
-```
-const { disableRegKeyErrors } = require('regkey')
-disableRegKeyErrors()
-```
-
-#### Close a key
+#### Closing a key
 
 The key will automatically close when the JavaScript object is released
 
@@ -155,23 +80,80 @@ const myKey = hkcu.createSubkey('Software/myKey')
 
 If the key already exists, it will be directly opened
 
+#### Reading values
+
+```
+const values = myKey.values()
+for (const value of values) {
+  console.log('name: ', value.name)
+  console.log('type: ', value.type)
+  console.log('value: ', value.value)
+  console.log('data: ', value.data, '\n')
+}
+```
+
+The value field reads the registry item as a string, and data reads it as a buffer
+
+Assignments to both of them have the same effect
+
+You can also call getStringValue to directly get the value string
+
+```
+const value = myKey.getStringValue('some-value')
+console.log(value)
+```
+
+Or you can use 'get' function to specify the result type you expect
+
+```
+const value = myKey.value('some-value').get(String)
+```
+
+The type could be one of String, Buffer, Number, Array(for REG_MULTI_SZ)
+
+If resultType was not specified, it will be decided by the type of the value
+
+#### Handling an error
+
+When necessary, a RegKey function may throw a RegKeyError:
+
+```
+const errorVal = myKey.getStringValue('A-nonexistent-value')
+```
+
+You may get an error like the following
+
+```
+RegKeyError: Failed to get value
+    at Object.<anonymous> (path\to\your\source\index.js:4:21)
+    at ... {
+  key: RegKey {...},
+  value: 'A-nonexistent-value',
+  lastErrorCode: 203
+}
+```
+
+The 'lastErrorCode' field is the value returned by GetLastError()
+
+If you don't want to receive a RegKeyError even if a function failed, use disableRegKeyErrors
+
+```
+const { disableRegKeyErrors } = require('regkey')
+disableRegKeyErrors()
+```
+
 #### Setting values
 
 ```
-// setting one
+// directly set
 myKey.setStringValue('myValName', 'myValData')
-// setting an array
-myKey.putValues([
-  {
-    name: 'val-1',
-    data: 'a string' // As REG_SZ  
-  },
-  {
-    name: 'val-2',
-    data: 123 // As REG_QWORD
-  }
-])
+// through RegValue object
+myKey.value('myValName').set('myValName', 'myValData')
 ```
+
+You can specify a RegValueType after 'myValData'
+
+If you do not do so, the type is decided by typeof 'myValData'
 
 #### Delete the key
 
