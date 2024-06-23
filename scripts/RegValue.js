@@ -68,6 +68,7 @@ class RegValue {
       default:
         if (resultType) {
           throwRegKeyError('Invalid result type', this.key, this.name, getLastError())
+          return null
         } else {
           return this.key.getBinaryValue(this.name)
         }
@@ -77,24 +78,25 @@ class RegValue {
   set(val, type) {
     switch (typeof val) {
       case 'number':
-        // 判断是否为整数
-        if (val % 1 === 0) {
+        if (type === RegValueType.REG_DWORD) {
+          return this.key.setDwordValue(this.name, val)
+        } else if (type === RegValueType.REG_QWORD || Number.isInteger(val)) {
           return this.key.setQwordValue(this.name, val, type || RegValueType.REG_QWORD)
         } else {
-          // convert to string
-          return this.key.setStringValue(this.name, val.toString(), RegValueType.REG_SZ)
+          return this.key.setStringValue(this.name, val.toString(), type || RegValueType.REG_SZ)
         }
       case 'string':
         return this.key.setStringValue(this.name, val, type || RegValueType.REG_SZ)
       case 'object':
         if (val instanceof Buffer) {
-          return this.key.setBinaryValue(this.name, val)
+          return this.key.setBinaryValue(this.name, val, type || RegValueType.REG_BINARY)
         }
         if (Array.isArray(val)) {
           return this.key.setMultiStringValue(this.name, val, type || RegValueType.REG_MULTI_SZ)
         }
       default:
         throwRegKeyError('Invalid value type', this.key, this.name, getLastError())
+        return false
     }
   }
 
@@ -107,7 +109,7 @@ class RegValue {
   }
 
   get value() {
-    return this.key.getStringValue(this.name)
+    return this.get()
   }
 
   set value(val) {

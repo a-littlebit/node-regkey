@@ -6,7 +6,7 @@ const RegKey = regkey.RegKey
 const { disableRegKeyErrors, throwRegKeyError } = require("./Error")
 const { RegValue } = require("./RegValue")
 
-// Provide a reference to the RegKeyError class for native code
+// Provide access to throw a RegKeyError for native code
 RegKey.prototype.__throwRegKeyError__ = throwRegKeyError
 
 regkey.disableRegKeyErrors = disableRegKeyErrors

@@ -67,8 +67,8 @@ export declare class RegValue {
   readonly type: RegValueType
   readonly exists: boolean
 
-  // read as string
-  value: string
+  // read according to type
+  value: string | string[] | number | Buffer
   // read as buffer
   data: Buffer
 

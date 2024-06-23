@@ -92,11 +92,11 @@ for (const value of values) {
 }
 ```
 
-The value field reads the registry item as a string, and data reads it as a buffer
+The value field reads the registry item according to its value type, and data reads it as a buffer
 
 Assignments to both of them have the same effect
 
-You can also call getStringValue to directly get the value string
+You can also call getStringValue to directly get the value as a string
 
 ```
 const value = myKey.getStringValue('some-value')
