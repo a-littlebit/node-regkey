@@ -1,10 +1,10 @@
-const { RegKey, disableRegKeyErrors } = require('../index.js')
+const { RegKey, disableRegKeyErrors, RegKeyAccess } = require('../index.js')
 
 // never throw errors in any RegKey function
 disableRegKeyErrors()
 
 // create a RegKey object for the HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall key
-const key = new RegKey('HKCU/SOFTWARE/Microsoft/Windows/CurrentVersion/Uninstall')
+const key = new RegKey('HKLM/SOFTWARE/Microsoft/Windows/CurrentVersion/Uninstall', RegKeyAccess.Read)
 // get names of all subkeys
 const subKeys = key.getSubkeyNames().map(name => key.openSubkey(name))
 

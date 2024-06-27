@@ -1,4 +1,38 @@
 /**
+ * Registry key access rights
+ * - See https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry-key-security-and-access-rights
+ */
+export declare enum RegKeyAccess {
+  Default = 0,
+  Read = 0x20019,
+  Write = 0x20006,
+  Execute = 0x20019,
+  AllAccess = 0xf003f,
+
+  KEY_QUERY_VALUE = 0x0001,
+  KEY_SET_VALUE = 0x0002,
+  KEY_CREATE_SUB_KEY = 0x0004,
+  KEY_ENUMERATE_SUB_KEYS = 0x0008,
+  KEY_NOTIFY = 0x0010,
+  KEY_CREATE_LINK = 0x0020,
+  KEY_WOW64_32KEY = 0x0200,
+  KEY_WOW64_64KEY = 0x0100,
+  KEY_WOW64_RES = 0x0300,
+
+  STANDARD_RIGHTS_REQUIRED = 0x000F0000,
+  STANDARD_RIGHTS_READ = 0x00020000,
+  STANDARD_RIGHTS_WRITE = 0x00020000,
+  STANDARD_RIGHTS_EXECUTE = 0x00020000,
+  STANDARD_RIGHTS_ALL = 0x001F0000,
+
+  KEY_READ = 0x20019,
+  KEY_WRITE = 0x20006,
+  KEY_EXECUTE = 0x20019,
+  KEY_ALL_ACCESS = 0xF003F
+}
+
+
+/**
  * Registry value types
  */
 export declare enum RegValueType {
@@ -27,21 +61,29 @@ export declare class RegKey {
    * Create a new RegKey object with the given path.
    * A native registry key will be created with the given path.
    * 
-   * @param paths - The path to the registry key.
+   * @param pathsOrAccess - The path to the registry key and the desired access rights.
    * @example
    * // specify full path
    * const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp')
    * // specify path parts
    * const key = new RegKey('HKEY_CURRENT_USER', 'Software', 'MyApp')
-   * // combine paths
-   * const key = new RegKey('HKEY_CURRENT_USER', 'Software/MyApp')
+   * // specify a remote host
+   * const key = new RegKey('//hostname', 'HKCU/Software/MyApp')
+   * // specify a remote host and access rights
+   * const key = new RegKey('//hostname/HKCU/Software/MyApp', RegKeyAccess.Read)
    */
-  constructor(...paths: string[])
+  constructor(...pathsOrAccess: Array<string | RegKeyAccess | RegKeyAccess[]>)
 
   /**
    * @readonly The full path to the registry key.
    */
   readonly path: string
+
+  /**
+   * @readonly The hostname of the remote registry key.
+   *           If the key is local, this property will be empty.
+   */
+  readonly host: string
 
   /**
    * The name of the registry key.
@@ -58,7 +100,7 @@ export declare class RegKey {
    * Copy the subkey tree from the source key to the current key.
    * 
    * @param src - The source key.
-   * @returns - True if the copy is successful.
+   * @returns True if the copy is successful.
    */
   copy(src: RegKey): boolean
 
@@ -78,7 +120,7 @@ export declare class RegKey {
   /**
    * Get all RegValue objects in the key.
    * 
-   * @returns - An array containing all RegValue objects in the key.
+   * @returns An array containing all RegValue objects in the key.
    */
   values(): RegValue[]
 
@@ -89,7 +131,7 @@ export declare class RegKey {
    * @param name - The name of the value.
    * @param val - The value.
    * @param type - The type of the value.
-   * @returns - A RegValue object related to the created value.
+   * @returns A RegValue object related to the created value.
    */
   newValue(name: string,
            val?: string | string[] | number | Buffer,
@@ -100,7 +142,7 @@ export declare class RegKey {
    * If failed, the function may throw a RegKeyError.
    * 
    * @param name - The name of the value.
-   * @returns - The binary value in a buffer.
+   * @returns The binary value in a buffer.
    */
   getBinaryValue(name: string): Buffer
 
@@ -110,7 +152,7 @@ export declare class RegKey {
    * If failed, the function may throw a RegKeyError.
    * 
    * @param name - The name of the value.
-   * @returns - The string value.
+   * @returns The string value.
    */
   getStringValue(name: string): string
 
@@ -120,7 +162,7 @@ export declare class RegKey {
    * If failed, the function may throw a RegKeyError.
    * 
    * @param name - The name of the value.
-   * @returns - An array containing the string values.
+   * @returns An array containing the string values.
    */
   getMultiStringValue(name: string): string[]
 
@@ -130,7 +172,7 @@ export declare class RegKey {
    * If failed, the function may throw a RegKeyError.
    * 
    * @param name - The name of the value.
-   * @returns - A number equaling to the DWORD value.
+   * @returns A number equaling to the DWORD value.
    */
   getDwordValue(name: string): number
 
@@ -140,7 +182,7 @@ export declare class RegKey {
    * If failed, the function may throw a RegKeyError.
    * 
    * @param name - The name of the value.
-   * @returns - A number equaling to the QWORD value.
+   * @returns A number equaling to the QWORD value.
    */
   getQwordValue(name: string): number
 
@@ -149,7 +191,7 @@ export declare class RegKey {
    * If failed, the function may throw a RegKeyError.
    * 
    * @param name - The name of the value.
-   * @returns - The type of the value. It is a value in enum RegValueType.
+   * @returns The type of the value. It is a value in enum RegValueType.
    */
   getValueType(name: string): RegValueType
 
@@ -157,14 +199,14 @@ export declare class RegKey {
    * Check if the key has the given value.
    * 
    * @param name - The name of the value.
-   * @returns - True if the key has the given value.
+   * @returns True if the key has the given value.
    */
   hasValue(name: string): boolean
 
   /**
    * Get all value names in the key.
    * 
-   * @returns - An array containing all value names.
+   * @returns An array containing all value names.
    */
   getValueNames(): string[]
 
@@ -175,7 +217,7 @@ export declare class RegKey {
    * @param val - The value.
    * @param type - The type of the value.
    *               If not specified, the type will be REG_BINARY.
-   * @returns - True if the value is set successfully.
+   * @returns True if the value is set successfully.
    */
   setBinaryValue(name: string, val: Buffer): boolean
 
@@ -186,7 +228,7 @@ export declare class RegKey {
    * @param val - The value.
    * @param type - The type of the value.
    *               If not specified, the type will be REG_SZ.
-   * @returns - True if the value is set successfully.
+   * @returns True if the value is set successfully.
    */
   setStringValue(name: string, val: string, type?: RegValueType): boolean
 
@@ -197,7 +239,7 @@ export declare class RegKey {
    * @param val - The value.
    * @param type - The type of the value.
    *               If not specified, the type will be REG_MULTI_SZ.
-   * @returns - True if the value is set successfully.
+   * @returns True if the value is set successfully.
    */
   setMultiStringValue(name: string, val: string[], type?: RegValueType): boolean
 
@@ -208,7 +250,7 @@ export declare class RegKey {
    * @param val - The value.
    * @param type - The type of the value.
    *               If not specified, the type will be REG_DWORD.
-   * @returns - True if the value is set successfully.
+   * @returns True if the value is set successfully.
    */
   setDwordValue(name: string, val: number, type?: RegValueType): boolean
 
@@ -219,7 +261,7 @@ export declare class RegKey {
    * @param val - The value.
    * @param type - The type of the value.
    *               If not specified, the type will be REG_QWORD.
-   * @returns - True if the value is set successfully.
+   * @returns True if the value is set successfully.
    */
   setQwordValue(name: string, val: number, type?: RegValueType): boolean
 
@@ -227,14 +269,14 @@ export declare class RegKey {
    * Delete the value of the given name.
    * 
    * @param name - The name of the value.
-   * @returns - True if the value is deleted successfully.
+   * @returns True if the value is deleted successfully.
    */
   deleteValue(name: string): boolean
 
   /**
    * Delete the key.
    * 
-   * @returns - True if the key is deleted successfully.
+   * @returns True if the key is deleted successfully.
    */
   delete(): boolean
 
@@ -243,31 +285,33 @@ export declare class RegKey {
    * If failed, the function will return null.
    * 
    * @param name - The name of the subkey.
-   * @returns - A RegKey object related to the subkey.
+   * @param access - The desired access rights.
+   * @returns A RegKey object related to the subkey.
    */
-  openSubkey(name: string): RegKey | null
+  openSubkey(name: string, access?: RegKeyAccess | RegKeyAccess[]): RegKey | null
 
   /**
    * Create the subkey of the given name.
    * If failed, the function will return null.
    * 
    * @param name - The name of the subkey.
-   * @returns - A RegKey object related to the subkey.
+   * @param access - The desired access rights
+   * @returns A RegKey object related to the subkey.
    */
-  createSubkey(name: string): RegKey | null
+  createSubkey(name: string, access?: RegKeyAccess | RegKeyAccess[]): RegKey | null
 
   /**
    * Delete the subkey of the given name.
    * 
    * @param name - The name of the subkey.
-   * @returns - True if the subkey is deleted successfully.
+   * @returns True if the subkey is deleted successfully.
    */
   deleteSubkey(name: string): boolean
 
   /**
    * Get all subkey names in the key.
    * 
-   * @returns - An array containing all subkey names.
+   * @returns An array containing all subkey names.
    */
   getSubkeyNames(): string[]
 
@@ -275,14 +319,14 @@ export declare class RegKey {
    * Check if the key has the given subkey.
    * 
    * @param name - The name of the subkey.
-   * @returns - True if the key has the given subkey.
+   * @returns True if the key has the given subkey.
    */
   hasSubkey(name: string): boolean
 
   /**
    * Check if the key is writable.
    * 
-   * @returns - True if the key is writable.
+   * @returns True if the key is writable.
    */
   isWritable(): boolean
 }
@@ -340,7 +384,7 @@ export declare class RegValue {
    * 
    * @param resultType - The type of the value. It must be one of Number, String, Array, Buffer.
    *                     If not specified, the type will be inferred from the value.
-   * @returns - The value with specified type.
+   * @returns The value with specified type.
    */
   get(resultType?: Function): string | string[] | number | Buffer
 
@@ -350,14 +394,14 @@ export declare class RegValue {
    * @param val - The value.
    * @param type - The type of the value. It is a value in enum RegValueType.
    *               If not specified, the type will be inferred from 'val' param.
-   * @returns - True if the value is set successfully.
+   * @returns True if the value is set successfully.
    */
   set(val: string | string[] | number | Buffer, type?: RegValueType): boolean
 
   /**
    * Delete the value.
    * 
-   * @returns - True if the value is deleted successfully.
+   * @returns True if the value is deleted successfully.
    */
   delete(): boolean
 
@@ -365,7 +409,7 @@ export declare class RegValue {
    * Rename the value.
    * 
    * @param newName - The new name of the value.
-   * @returns - True if the value is renamed successfully.
+   * @returns True if the value is renamed successfully.
    */
   rename(newName: string): boolean
 }
@@ -430,7 +474,7 @@ export declare function disableRegKeyErrors(disabled?: boolean): void
  * Get the last error code.
  * It is a wrapper of GetLastError() function in Windows API.
  * 
- * @returns - The last error code.
+ * @returns The last error code.
  */
 export declare function getLastError(): number
 

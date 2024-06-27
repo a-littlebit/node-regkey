@@ -69,6 +69,15 @@
     "xutility": "cpp",
     "variant": "cpp",
     "codecvt": "cpp",
-    "regex": "cpp"
+    "regex": "cpp",
+    "bitset": "cpp",
+    "forward_list": "cpp",
+    "iomanip": "cpp",
+    "ios": "cpp",
+    "queue": "cpp",
+    "random": "cpp",
+    "ranges": "cpp",
+    "span": "cpp",
+    "stack": "cpp"
   }
 }

@@ -1,6 +1,6 @@
 const reg = require('../../index.js')
 
-const ms = reg.hkcu.openSubkey('Software/Microsoft')
+const ms = new reg.RegKey('HKEY_LOCAL_MACHINE/Software/Microsoft', reg.RegKeyAccess.Read)
 if (!ms) {
   console.log('Microsoft registry key not found')
   process.exit(1)
@@ -10,10 +10,6 @@ console.log('ms subkeys:\n', ms.getSubkeyNames())
 ms.close()
 
 const testKey = reg.hkcu.createSubkey('Software/TestKey')
-if (!testKey) {
-  console.log('Failed to create TestKey')
-  process.exit(1)
-}
 
 for (let i = 0; i < 10; i++) {
   testKey.setStringValue('test-str-' + i, 'test-val-' + i)

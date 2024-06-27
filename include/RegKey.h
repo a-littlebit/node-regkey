@@ -15,9 +15,12 @@ struct ValueInfo {
 class RegKey
 {
 public:
-  RegKey(HKEY hKey = NULL) : _hKey(hKey) {}
 
-  RegKey(HKEY baseKey, const std::string &subKeyName);
+  // 0 specifies use RegCreateKeyA
+  RegKey(HKEY baseKey = NULL,
+         const std::string &subKeyName = "",
+         const std::string &hostname = "",
+         REGSAM access = 0);
 
   ~RegKey() {
     close();
@@ -26,9 +29,11 @@ public:
   RegKey(const RegKey &) = delete;
   RegKey &operator=(const RegKey &) = delete;
 
-  HKEY open(HKEY baseKey, const std::string &subKeyName);
+  HKEY open(HKEY baseKey, const std::string &subKeyName, REGSAM access = 0);
 
-  HKEY create(HKEY baseKey, const std::string &subKeyName);
+  HKEY create(HKEY baseKey, const std::string &subKeyName, REGSAM access = 0);
+
+  HKEY connect(HKEY baseKey, const std::string &hostname);
 
   HKEY attach(HKEY hKey);
 
@@ -88,9 +93,9 @@ public:
 
   bool deleteKey() const;
 
-  HKEY openSubkey(const std::string &subkeyName);
+  HKEY openSubkey(const std::string &subkeyName, REGSAM access = 0);
 
-  HKEY createSubkey(const std::string &subkeyName);
+  HKEY createSubkey(const std::string &subkeyName, REGSAM access = 0);
 
   bool deleteSubkey(const std::string &subkeyName);
 

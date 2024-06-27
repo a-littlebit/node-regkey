@@ -57,7 +57,7 @@ The result is an array of string containing names of all the subkeys
 
 #### Closing a key
 
-The key will be automatically closed when the JavaScript object is  garbage collected
+The key will be automatically closed when the JavaScript object is  garbage coll
 
 You can also close it manually
 
@@ -65,7 +65,7 @@ You can also close it manually
 ms.close()
 ```
 
-#### Creating a subkey
+#### Creating a new key
 
 ```
 const myKey = hkcu.createSubkey('Software/myKey')
@@ -77,10 +77,19 @@ You can also call the RegKey constructor to create a registry key
 
 ```
 const { RegKey } = require('regkey')
-const ms = new RegKey('HKCU/Software/Microsoft')
-// or
-const ms = new RegKey('HKCU', 'Software', 'Microsoft')
+// specify full path
+const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp')
+// specify path parts
+const key = new RegKey('HKEY_CURRENT_USER', 'Software', 'MyApp')
+// specify a remote host
+const key = new RegKey('//hostname', 'HKCU/Software/MyApp')
+// specify a remote host and access rights
+const key = new RegKey('//hostname/HKCU/Software/MyApp', RegKeyAccess.Read)
 ```
+
+The RegAccessKey is an enum that specifies the access rights of the key
+You can find the definition of the enum in index.d.ts
+For more details, see the [MSDN](https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry-key-security-and-access-rights)
 
 #### Reading values
 

@@ -16,6 +16,8 @@ public:
 
   Napi::Value getPath(const Napi::CallbackInfo &info);
 
+  Napi::Value getHost(const Napi::CallbackInfo &info);
+
   Napi::Value getName(const Napi::CallbackInfo &info);
 
   void setName(const Napi::CallbackInfo &info, const Napi::Value &value);
@@ -71,7 +73,9 @@ public:
   Napi::Value isWritable(const Napi::CallbackInfo &info);
 
 private:
-  static void _throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value);
+  static void _throwRegKeyError(const Napi::CallbackInfo &info,
+                                const std::string &message,
+                                const std::string &value = "");
 
   std::shared_ptr<RegKey> _regKey;
   std::string _path;

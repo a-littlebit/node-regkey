@@ -140,6 +140,7 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
 {
     Napi::Function func = DefineClass(env, "RegKey", {
         InstanceAccessor("path", &RegKeyWrap::getPath, nullptr),
+        InstanceAccessor("host", &RegKeyWrap::getHost, nullptr),
         InstanceAccessor("name", &RegKeyWrap::getName, &RegKeyWrap::setName),
         InstanceAccessor("open", &RegKeyWrap::isOpen, nullptr),
 
@@ -211,33 +212,48 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
         _path = info[1].As<Napi::String>().Utf8Value();
     } else if (info[0].IsString()) {
         _path = info[0].As<Napi::String>().Utf8Value();
+
+        REGSAM access = 0;
+
         for (int i = 1; i < info.Length(); i++) {
             if (info[i].IsString()) {
                 _path += "\\" + info[i].As<Napi::String>().Utf8Value();
+            } else if (info[i].IsNumber()) {
+                access |= info[i].As<Napi::Number>().Int32Value();
+            } else if (info[i].IsArray()) {
+                Napi::Array accessArray = info[i].As<Napi::Array>();
+                for (int j = 0; j < accessArray.Length(); j++) {
+                    if (accessArray.Get(j).IsNumber()) {
+                        access |= accessArray.Get(j).As<Napi::Number>().Int32Value();
+                    }
+                }
             } else {
                 throw Napi::TypeError::New(info.Env(), "Invalid key name");
             }
         }
 
-        _path = std::regex_replace(_path, std::regex("[/\\\\]+"), "\\");
-        auto it = _path.begin();
-        if (*it == '\\') {
-            _path.erase(it);
-        }
-        it = --_path.end();
-        if (*it == '\\') {
-            _path.erase(it);
-        }
-        if (_path.empty()) {
-            throw Napi::TypeError::New(info.Env(), "Invalid key name");
+        _path = replace_string(_path, "/", "\\");
+
+        std::string hostname, baseKeyName, subKeyName;
+
+        std::regex pattern("^(\\\\\\\\(.+?)\\\\)?([a-zA-Z_]+?)\\\\(.*)$");
+        std::smatch match;
+        if (std::regex_match(_path, match, pattern) && match.size() == 5) {
+            hostname = match[2];
+            baseKeyName = match[3];
+            subKeyName = match[4];
+        } else {
+            _throwRegKeyError(info, "Invalid key path");
+            return;
         }
 
-        size_t split = _path.find("\\");
-        if (split != std::string::npos) {
-            _regKey.reset(new RegKey(getBaseKey(_path.substr(0, split)), _path.substr(split + 1)));
-        } else {
-            _regKey.reset(new RegKey(getBaseKey(_path)));
+        HKEY baseKey = getBaseKey(baseKeyName);
+        if (baseKey == NULL) {
+            _throwRegKeyError(info, "Invalid base key name");
+            return;
         }
+
+        _regKey.reset(new RegKey(baseKey, subKeyName, hostname, access));
     } else {
         throw Napi::TypeError::New(info.Env(), "Invalid base key");
     }
@@ -251,6 +267,14 @@ Napi::Value RegKeyWrap::isOpen(const Napi::CallbackInfo &info)
 Napi::Value RegKeyWrap::getPath(const Napi::CallbackInfo &info)
 {
     return Napi::String::New(info.Env(), _path);
+}
+
+Napi::Value RegKeyWrap::getHost(const Napi::CallbackInfo &info)
+{
+    if (_path.find("\\\\") == 0) {
+        return Napi::String::New(info.Env(), _path.substr(2, _path.find("\\", 2) - 2));
+    }
+    return Napi::String::New(info.Env(), "");
 }
 
 Napi::Value RegKeyWrap::getName(const Napi::CallbackInfo &info)
@@ -602,16 +626,28 @@ Napi::Value RegKeyWrap::openSubkey(const Napi::CallbackInfo &info)
 
     HKEY hKey;
     std::string keyName;
+    REGSAM access = 0;
     if (info[0].IsString()) {
         keyName = info[0].As<Napi::String>().Utf8Value();
         keyName = replace_string(keyName, "/", "\\");
-        hKey = _regKey->openSubkey(keyName);
     } else {
         throw Napi::TypeError::New(info.Env(), "Subkey name shuold be a String");
     }
+    if (info.Length() > 1) {
+        if (info[1].IsNumber()) {
+            access = info[1].As<Napi::Number>().Int32Value();
+        } else if (info[1].IsArray()) {
+            Napi::Array accessArray = info[1].As<Napi::Array>();
+            for (uint32_t i = 0; i < accessArray.Length(); i++) {
+                if (accessArray.Get(i).IsNumber()) {
+                    access |= accessArray.Get(i).As<Napi::Number>().Int32Value();
+                }
+            }
+        }
+    }
 
-    if (hKey == NULL)
-    {
+    hKey = _regKey->openSubkey(keyName, access);
+    if (hKey == NULL) {
         return info.Env().Null();
     }
 
@@ -624,21 +660,34 @@ Napi::Value RegKeyWrap::createSubkey(const Napi::CallbackInfo &info)
         throw Napi::TypeError::New(info.Env(), "Subkey name expected");
     }
 
+    HKEY hKey;
+    std::string keyName;
+    REGSAM access = 0;
     if (info[0].IsString()) {
-        std::string keyName = info[0].As<Napi::String>().Utf8Value();
+        keyName = info[0].As<Napi::String>().Utf8Value();
         keyName = replace_string(keyName, "/", "\\");
-        std::transform(keyName.begin(), keyName.end(), keyName.begin(), ::tolower);
-        HKEY hKey = _regKey->createSubkey(keyName);
-
-        if (hKey == NULL)
-        {
-            return info.Env().Null();
-        }
-
-        return RegKeyWrap::NewInstance(info.Env(), hKey, _path + '\\' + keyName);
     } else {
         throw Napi::TypeError::New(info.Env(), "Subkey name shuold be a String");
     }
+    if (info.Length() > 1) {
+        if (info[1].IsNumber()) {
+            access = info[1].As<Napi::Number>().Int32Value();
+        } else if (info[1].IsArray()) {
+            Napi::Array accessArray = info[1].As<Napi::Array>();
+            for (uint32_t i = 0; i < accessArray.Length(); i++) {
+                if (accessArray.Get(i).IsNumber()) {
+                    access |= accessArray.Get(i).As<Napi::Number>().Int32Value();
+                }
+            }
+        }
+    }
+
+    hKey = _regKey->createSubkey(keyName, access);
+    if (hKey == NULL) {
+        return info.Env().Null();
+    }
+
+    return RegKeyWrap::NewInstance(info.Env(), hKey, _path + '\\' + keyName);
 }
 
 Napi::Value RegKeyWrap::deleteSubkey(const Napi::CallbackInfo &info)

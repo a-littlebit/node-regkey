@@ -4,29 +4,51 @@
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
 
-RegKey::RegKey(HKEY baseKey, const std::string &subKeyName)
+RegKey::RegKey(HKEY baseKey, const std::string &subKeyName, const std::string &hostname, REGSAM samDesired)
 {
-    if (RegCreateKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
-        return;
-
-    _hKey = NULL;
+    _hKey = baseKey;
+    if (!hostname.empty()) {
+        connect(_hKey, hostname);
+    }
+    if (!subKeyName.empty()) {
+        create(_hKey, subKeyName, samDesired);
+    }
 }
 
-HKEY RegKey::open(HKEY baseKey, const std::string &subKeyName)
+HKEY RegKey::open(HKEY baseKey, const std::string &subKeyName, REGSAM samDesired)
 {
     close();
 
-    if (RegOpenKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
+    if (samDesired && RegOpenKeyExA(baseKey, subKeyName.c_str(), samDesired, 0, &_hKey) == ERROR_SUCCESS) {
         return _hKey;
+    }
+    if (!samDesired && RegOpenKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS) {
+        return _hKey;
+    }
     _hKey = NULL;
     return NULL;
 }
 
-HKEY RegKey::create(HKEY baseKey, const std::string &subKeyName)
+HKEY RegKey::create(HKEY baseKey, const std::string &subKeyName, REGSAM samDesired)
 {
     close();
 
-    if (RegCreateKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)
+    if (samDesired && RegCreateKeyExA(baseKey, subKeyName.c_str(), 0, NULL,
+                                      REG_OPTION_NON_VOLATILE, samDesired, NULL, &_hKey, NULL) == ERROR_SUCCESS) {
+        return _hKey;
+    }
+    if (!samDesired && RegCreateKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS) {
+        return _hKey;
+    }
+    _hKey = NULL;
+    return NULL;
+}
+
+HKEY RegKey::connect(HKEY baseKey, const std::string &hostname)
+{
+    close();
+
+    if (RegConnectRegistryA(hostname.c_str(), baseKey, &_hKey) == ERROR_SUCCESS)
         return _hKey;
     _hKey = NULL;
     return NULL;
@@ -403,26 +425,35 @@ bool RegKey::deleteKey() const
     return RegDeleteTreeA(_hKey, NULL) == ERROR_SUCCESS;
 }
 
-HKEY RegKey::openSubkey(const std::string &subkeyName)
+HKEY RegKey::openSubkey(const std::string &subkeyName, REGSAM samDesired)
 {
     if (_hKey == NULL)
         return NULL;
 
     HKEY hKey = NULL;
-    if (RegOpenKeyA(_hKey, subkeyName.c_str(), &hKey) == ERROR_SUCCESS)
+    if (samDesired && RegOpenKeyExA(_hKey, subkeyName.c_str(), 0, samDesired, &hKey) == ERROR_SUCCESS) {
         return hKey;
+    }
+    if (!samDesired && RegOpenKeyA(_hKey, subkeyName.c_str(), &hKey) == ERROR_SUCCESS) {
+        return hKey;
+    }
 
     return NULL;
 }
 
-HKEY RegKey::createSubkey(const std::string &subkeyName)
+HKEY RegKey::createSubkey(const std::string &subkeyName, REGSAM samDesired)
 {
     if (_hKey == NULL)
         return NULL;
 
     HKEY hKey = NULL;
-    if (RegCreateKeyA(_hKey, subkeyName.c_str(), &hKey) == ERROR_SUCCESS)
+    if (samDesired && RegCreateKeyExA(_hKey, subkeyName.c_str(), 0, NULL,
+                                      REG_OPTION_NON_VOLATILE, samDesired, NULL, &hKey, NULL) == ERROR_SUCCESS) {
         return hKey;
+    }
+    if (!samDesired && RegCreateKeyA(_hKey, subkeyName.c_str(), &hKey) == ERROR_SUCCESS) {
+        return hKey;
+    }
 
     return NULL;
 }
