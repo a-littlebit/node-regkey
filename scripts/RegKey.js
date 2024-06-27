@@ -3,13 +3,11 @@ const util = require('util');
 
 const regkey = require("node-gyp-build")(path.join(__dirname, ".."))
 const RegKey = regkey.RegKey
-const { disableRegKeyErrors, throwRegKeyError } = require("./Error")
+const { throwRegKeyError } = require("./Error")
 const { RegValue } = require("./RegValue")
 
 // Provide access to throw a RegKeyError for native code
 RegKey.prototype.__throwRegKeyError__ = throwRegKeyError
-
-regkey.disableRegKeyErrors = disableRegKeyErrors
 
 // Print basic information in console.log
 RegKey.prototype[util.inspect.custom] = function (depth, options) {

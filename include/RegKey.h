@@ -52,6 +52,7 @@ public:
 
   ValueInfo getValue(const std::string &valueName, bool *success = nullptr);
 
+  // returns -1 if failed
   int getValueSize(const std::string &valueName);
 
   ByteArray getBinaryValue(const std::string &valueName, bool *success = nullptr) const;
@@ -82,6 +83,7 @@ public:
 
   int putValues(const std::list<ValueInfo> &values);
 
+  // returns 0 if failed
   DWORD getValueType(const std::string &valueName) const;
 
   bool deleteKey() const;

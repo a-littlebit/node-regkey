@@ -1,6 +1,6 @@
 {
   "name": "regkey",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Provide Windows registry key access for Node.js using the native Windows API.",
   "keywords": [
     "registry",

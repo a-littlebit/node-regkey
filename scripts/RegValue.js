@@ -101,7 +101,11 @@ class RegValue {
   }
 
   get type() {
-    return this.key.getValueType(this.name)
+    try {
+      return this.key.getValueType(this.name)
+    } catch {
+      return RegValueType.REG_NONE
+    }
   }
 
   get exists() {

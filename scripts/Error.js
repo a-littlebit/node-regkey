@@ -14,6 +14,7 @@ class RegKeyError extends Error {
 let regkeyErrorEnabled = true
 
 module.exports = {
+  RegKeyError,
   disableRegKeyErrors(disabled) {
     regkeyErrorEnabled = (disabled === false) ? true : false
   },

@@ -23,14 +23,14 @@ const { hkcu } = require('regkey')
 Currently supported base keys: 
 
 ```
-export declare const hkcr: RegKey; // HKEY_CLASS_ROOT
-export declare const hkcu: RegKey; // HKEY_CURRENT_USER
-export declare const hklm: RegKey; // HKEY_LOCAL_MACHINE
-export declare const hku:  RegKey; // HKEY_USERS
-export declare const hkcc: RegKey; // HKEY_CURRENT_CONFIG
-export declare const hkpd: RegKey; // HKEY_PERFORMANCE_DATA
-export declare const hkpt: RegKey; // HKEY_PERFORMANCE_TEXT
-export declare const hkpn: RegKey; // HKEY_PERFORMALCE_NLSTEXT
+export const hkcr: RegKey; // HKEY_CLASS_ROOT
+export const hkcu: RegKey; // HKEY_CURRENT_USER
+export const hklm: RegKey; // HKEY_LOCAL_MACHINE
+export const hku:  RegKey; // HKEY_USERS
+export const hkcc: RegKey; // HKEY_CURRENT_CONFIG
+export const hkpd: RegKey; // HKEY_PERFORMANCE_DATA
+export const hkpt: RegKey; // HKEY_PERFORMANCE_TEXT
+export const hkpn: RegKey; // HKEY_PERFORMALCE_NLSTEXT
 ```
 
 #### Opening an existing key
@@ -45,16 +45,7 @@ if (!ms) {
 console.log(`Opening ${ ms.path } success`)
 ```
 
-The function returns null if opening failed
-
-You can also use the RegKey constructor to create a RegKey
-
-```
-const { RegKey } = require('regkey')
-const ms = new RegKey('HKCU/Software/Microsoft')
-// or
-const ms = new RegKey('HKCU', 'Software', 'Microsoft')
-```
+The function 'openSubkey' returns null if opening failed
 
 #### Getting names of the subkeys
 
@@ -62,9 +53,11 @@ const ms = new RegKey('HKCU', 'Software', 'Microsoft')
 console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
 ```
 
+The result is an array of string containing names of all the subkeys
+
 #### Closing a key
 
-The key will automatically close when the JavaScript object is released
+The key will be automatically closed when the JavaScript object is  garbage collected
 
 You can also close it manually
 
@@ -80,6 +73,15 @@ const myKey = hkcu.createSubkey('Software/myKey')
 
 If the key already exists, it will be directly opened
 
+You can also call the RegKey constructor to create a registry key
+
+```
+const { RegKey } = require('regkey')
+const ms = new RegKey('HKCU/Software/Microsoft')
+// or
+const ms = new RegKey('HKCU', 'Software', 'Microsoft')
+```
+
 #### Reading values
 
 ```
@@ -92,7 +94,7 @@ for (const value of values) {
 }
 ```
 
-The value field reads the registry item according to its value type, and data reads it as a buffer
+The value property reads the registry item according to its value type, while data reads it as a buffer
 
 Assignments to both of them have the same effect
 
@@ -111,7 +113,7 @@ const value = myKey.value('some-value').get(String)
 
 The type could be one of String, Buffer, Number, Array(for REG_MULTI_SZ)
 
-If resultType was not specified, it will be decided by the type of the value
+If resultType was not specified, it will be determined by the type of the value
 
 #### Handling an error
 
@@ -153,12 +155,12 @@ myKey.value('myValName').set('myValName', 'myValData')
 
 You can specify a RegValueType after 'myValData'
 
-If you do not do so, the type is decided by typeof 'myValData'
+If you do not do so, the type is determined by typeof 'myValData'
 
 #### Delete the key
 
 ```
-if (!myKey.deleteKey()) {
+if (!myKey.delete()) {
   console.log('Delete HKCU/Software/myKey Failed!')
   console.warn('Try delete it manually!')
 }

@@ -1,29 +1,52 @@
-const { hkcu } = require('../../index.js')
+const { RegKey, disableRegKeyErrors } = require('../index.js')
 
-// if the key already exists, it will be directly opened
-const testKey = hkcu.createSubkey('Software/TestKey')
-if (!testKey) {
-  console.log('Failed to create TestKey')
+// never throw errors in any RegKey function
+disableRegKeyErrors()
+
+// create a RegKey object for the HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall key
+const key = new RegKey('HKCU/SOFTWARE/Microsoft/Windows/CurrentVersion/Uninstall')
+// get names of all subkeys
+const subKeys = key.getSubkeyNames().map(name => key.openSubkey(name))
+
+const apps = {}
+for (const subkey of subKeys) {
+  const name = subkey.name
+  // read all values of the subkey
+  apps[name] = subkey.values().reduce((app, value) => {
+    app[value.name] = value.value
+    return app
+  }, {})
+}
+
+console.log('Installed apps:\n', apps)
+
+// create a new subkey
+const myKey = key.createSubkey('MyKey')
+
+// check if the key was created successfully
+if (!myKey) {
+  console.log('Failed to create MyKey')
   process.exit(1)
 }
 
-// directly setting values
-for (let i = 0; i < 10; i++) {
-  testKey.setStringValue('test-str-' + i, 'test-val-' + i)
-}
+// add new values
+myKey.newValue('DisplayName', 'MyKey')
+myKey.newValue('DisplayVersion', '1.0.0')
+myKey.newValue('Publisher', 'vvcoder')
+myKey.newValue('InstallDate', new Date().getDate())
+// or
+// myKey.setStringValue('DisplayName', 'MyKey')
+// myKey.setStringValue('DisplayVersion', '1.0.0')
+// myKey.setStringValue('Publisher', 'vvcoder')
+// myKey.setDwordValue('InstallDate', new Date().getDate())
 
-for (let i = 0; i < 10; i++) {
-  testKey.setDwordValue('test-dword-' + i, 10 - i)
-}
-
-// operating a value through a RegValue object
-const newVal = testKey.newValue('newVal')
-newVal.set('test-str-buffer', 'REG_BINARY')
-
-console.log(testKey.values())
+console.log('MyKey:', myKey.values())
 
 // delete the key
-if (!testKey.delete()) {
-  console.log('Failed to delete TestKey')
+if (myKey.delete()) {
+  console.log('MyKey deleted')
+} else {
+  console.log('Failed to delete MyKey')
   console.warn('Try delete it manually!')
+  process.exit(1)
 }

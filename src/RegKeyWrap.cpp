@@ -399,7 +399,11 @@ Napi::Value RegKeyWrap::getValueType(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
-        return Napi::String::New(info.Env(), getKeyTypeName(_regKey->getValueType(valueName)));
+        DWORD type = _regKey->getValueType(valueName);
+        if (!type) {
+            _throwRegKeyError(info, "Failed to get value type", valueName);
+        }
+        return Napi::String::New(info.Env(), getKeyTypeName(type));
     } else {
         throw Napi::TypeError::New(info.Env(), "Value name expected");
     }
