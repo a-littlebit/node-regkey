@@ -30,14 +30,15 @@ class RegValue {
     // if resultType is not specified, get the value type from the key
     switch (resultType || this.key.getValueType(this.name)) {
       case Number:
+      case BigInt:
         const type = this.key.getValueType(this.name)
 
         switch (type) {
           case RegValueType.REG_DWORD:
-            return this.key.getDwordValue(this.name)
+            return resultType(this.key.getDwordValue(this.name))
           
           case RegValueType.REG_QWORD:
-            return this.key.getQwordValue(this.name)
+            return resultType(this.key.getQwordValue(this.name))
           
           case RegValueType.REG_SZ:
           case RegValueType.REG_EXPAND_SZ: {
@@ -80,10 +81,18 @@ class RegValue {
       case 'number':
         if (type === RegValueType.REG_DWORD) {
           return this.key.setDwordValue(this.name, val)
-        } else if (type === RegValueType.REG_QWORD || Number.isInteger(val)) {
+        } else if (type === RegValueType.REG_QWORD || (Number.isInteger(val) && val >= 0)) {
           return this.key.setQwordValue(this.name, val, type || RegValueType.REG_QWORD)
         } else {
           return this.key.setStringValue(this.name, val.toString(), type || RegValueType.REG_SZ)
+        }
+      case 'bigint':
+        if (type === RegValueType.REG_DWORD) {
+          return this.key.setDwordValue(this.name, val, type)
+        } else if (type === RegValueType.REG_SZ || type === RegValueType.REG_EXPAND_SZ) {
+          return this.key.setStringValue(this.name, val.toString(), type)
+        } else {
+          return this.key.setQwordValue(this.name, val, type || RegValueType.REG_QWORD)
         }
       case 'string':
         return this.key.setStringValue(this.name, val, type || RegValueType.REG_SZ)

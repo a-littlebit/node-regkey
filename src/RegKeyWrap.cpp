@@ -409,7 +409,7 @@ Napi::Value RegKeyWrap::getQwordValue(const Napi::CallbackInfo &info)
             _throwRegKeyError(info, "Failed to get value", valueName);
             return info.Env().Null();
         }
-        return Napi::Number::New(info.Env(), double(value));
+        return Napi::BigInt::New(info.Env(), value);
     } else {
         throw Napi::TypeError::New(info.Env(), "Value name expected");
     }
@@ -558,7 +558,7 @@ Napi::Value RegKeyWrap::setDwordValue(const Napi::CallbackInfo &info)
 
     return Napi::Boolean::New(info.Env(), _regKey.setDwordValue(
                                                 info[0].As<Napi::String>().Utf8Value(),
-                                                info[1].As<Napi::Number>().Int32Value(),
+                                                info[1].As<Napi::Number>().Uint32Value(),
                                                 type
                                               ));
 }
@@ -568,10 +568,19 @@ Napi::Value RegKeyWrap::setQwordValue(const Napi::CallbackInfo &info)
     if (info.Length() < 1 || !info[0].IsString()) {
         throw Napi::TypeError::New(info.Env(), "Value name expected");
     }
-    if (info.Length() < 2 || !info[1].IsNumber()) {
+    if (info.Length() < 2) {
         throw Napi::TypeError::New(info.Env(), "Number value expected");
     }
 
+    QWORD value = 0;
+    bool loss = false;
+    if (info[1].IsNumber()) {
+        value = QWORD(info[1].As<Napi::Number>().Int64Value());
+    } else if (info[1].IsBigInt()) {
+        value = info[1].As<Napi::BigInt>().Uint64Value(&loss);
+    } else {
+        throw Napi::TypeError::New(info.Env(), "Number value expected");
+    }
     DWORD type = REG_QWORD;
     if (info.Length() > 2 && info[2].IsString()) {
         type = getKeyTypeValue(info[2].As<Napi::String>().Utf8Value());
@@ -582,7 +591,7 @@ Napi::Value RegKeyWrap::setQwordValue(const Napi::CallbackInfo &info)
 
     return Napi::Boolean::New(info.Env(), _regKey.setQwordValue(
                                                 info[0].As<Napi::String>().Utf8Value(),
-                                                info[1].As<Napi::Number>().Int64Value(),
+                                                value,
                                                 type
                                               ));
 }

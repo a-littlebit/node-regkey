@@ -1,4 +1,4 @@
-const { RegKey, disableRegKeyErrors, RegKeyAccess } = require('../index.js')
+const { RegKey, disableRegKeyErrors, RegKeyAccess } = require('..')
 
 // never throw errors in any RegKey function
 disableRegKeyErrors()

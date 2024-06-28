@@ -62,6 +62,11 @@ export declare enum RegValueType {
 }
 
 /**
+ * supported registry value receivers
+ */
+type RegValueReceiver = string | string[] | number | bigint | Buffer
+
+/**
  * RegKey class
  * An object that represents a registry key.
  */
@@ -144,7 +149,7 @@ export declare class RegKey {
    * @returns A RegValue object related to the created value.
    */
   newValue(name: string,
-           val?: string | string[] | number | Buffer,
+           val?: RegValueReceiver,
            type?: RegValueType): RegValue | null
            
   /**
@@ -192,9 +197,9 @@ export declare class RegKey {
    * If failed, the function may throw a RegKeyError.
    * 
    * @param name - The name of the value.
-   * @returns A number equaling to the QWORD value.
+   * @returns A bigint equaling to the QWORD value.
    */
-  getQwordValue(name: string): number
+  getQwordValue(name: string): bigint
 
   /**
    * Get the type of the value of the given name.
@@ -273,7 +278,7 @@ export declare class RegKey {
    *               If not specified, the type will be REG_QWORD.
    * @returns True if the value is set successfully.
    */
-  setQwordValue(name: string, val: number, type?: RegValueType): boolean
+  setQwordValue(name: string, val: number | bigint, type?: RegValueType): boolean
 
   /**
    * Delete the value of the given name.
@@ -380,7 +385,7 @@ export declare class RegValue {
    * - The value. Setting this property will change the value.
    * - The type of this property is determined by the type of the value.
    */
-  value: string | string[] | number | Buffer
+  value: RegValueReceiver
   
   /**
    * - The raw data of the value.
@@ -396,7 +401,7 @@ export declare class RegValue {
    *                     If not specified, the type will be inferred from the value.
    * @returns The value with specified type.
    */
-  get(resultType?: Function): string | string[] | number | Buffer
+  get(resultType?: Function): RegValueReceiver
 
   /**
    * Set the value. The function may throw a RegKeyError.
@@ -406,7 +411,7 @@ export declare class RegValue {
    *               If not specified, the type will be inferred from 'val' param.
    * @returns True if the value is set successfully.
    */
-  set(val: string | string[] | number | Buffer, type?: RegValueType): boolean
+  set(val: RegValueReceiver, type?: RegValueType): boolean
 
   /**
    * Delete the value.

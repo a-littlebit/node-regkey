@@ -1,4 +1,4 @@
-const reg = require('../../index.js')
+const reg = require('../..')
 
 const ms = new reg.RegKey('HKEY_LOCAL_MACHINE/Software/Microsoft', reg.RegKeyAccess.Read)
 if (!ms.open) {

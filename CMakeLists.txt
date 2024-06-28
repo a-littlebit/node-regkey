@@ -43,4 +43,4 @@ string(REPLACE "\"" "" NODE_ADDON_API_INC ${NODE_ADDON_API_INC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${NODE_ADDON_API_INC})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB})
 
-add_definitions(-DNAPI_VERSION=3)
+add_definitions(-DNAPI_VERSION=8)
