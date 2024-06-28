@@ -79,8 +79,8 @@ class RegValue {
   set(val, type) {
     switch (typeof val) {
       case 'number':
-        if (type === RegValueType.REG_DWORD) {
-          return this.key.setDwordValue(this.name, val)
+        if (type === RegValueType.REG_DWORD || (Number.isInteger(val) && val >= 0 && val <= 0xFFFFFFFF)) {
+          return this.key.setDwordValue(this.name, val, type || RegValueType.REG_DWORD)
         } else if (type === RegValueType.REG_QWORD || (Number.isInteger(val) && val >= 0)) {
           return this.key.setQwordValue(this.name, val, type || RegValueType.REG_QWORD)
         } else {
@@ -88,7 +88,7 @@ class RegValue {
         }
       case 'bigint':
         if (type === RegValueType.REG_DWORD) {
-          return this.key.setDwordValue(this.name, val, type)
+          return this.key.setDwordValue(this.name, Number(val))
         } else if (type === RegValueType.REG_SZ || type === RegValueType.REG_EXPAND_SZ) {
           return this.key.setStringValue(this.name, val.toString(), type)
         } else {
