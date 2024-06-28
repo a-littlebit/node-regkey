@@ -737,7 +737,7 @@ Napi::Value RegKeyWrap::isWritable(const Napi::CallbackInfo &info)
 
 void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value)
 {
-    // 从 prototype 获取 __RegKeyError__ 构造函数
+    // 从 prototype 获取 __throwRegKeyError__ 函数
     Napi::Object thisObj = info.This().As<Napi::Object>();
     Napi::Value regKeyError = thisObj.Get("__throwRegKeyError__");
     if (regKeyError.IsFunction()) {

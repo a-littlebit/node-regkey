@@ -1,6 +1,6 @@
 {
   "name": "regkey",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "Provide Windows registry key access for Node.js using the native Windows API.",
   "keywords": [
     "registry",
@@ -23,7 +23,9 @@
     "clean": "cmake-js clean",
     "prebuild:ia32": "prebuildify --strip --napi --platform=win32 --arch=ia32",
     "prebuild:x64": "prebuildify --strip --napi --platform=win32 --arch=x64",
-    "clean-prebuilds": "rmdir /s /q prebuilds"
+    "prebuild:arm64": "prebuildify --strip --napi --platform=win32 --arch=arm64",
+    "prebuild": "npm run prebuild:ia32 && npm run prebuild:x64 && npm run prebuild:arm64",
+    "prebuild:clean": "rmdir /s /q prebuilds"
   },
   "dependencies": {
     "node-addon-api": "^8.0.0",
