@@ -1,6 +1,5 @@
 #include "RegKey.h"
 #include <napi.h>
-#include <memory>
 
 class RegKeyWrap : public Napi::ObjectWrap<RegKeyWrap>
 {
@@ -77,7 +76,7 @@ private:
                                 const std::string &message,
                                 const std::string &value = "");
 
-  std::shared_ptr<RegKey> _regKey;
+  RegKey _regKey;
   std::string _path;
 
   static Napi::FunctionReference constructor;

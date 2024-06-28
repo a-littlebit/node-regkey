@@ -208,7 +208,7 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
 
     if (info[0].IsExternal()) {
         Napi::External<HKEY> external = info[0].As<Napi::External<HKEY>>();
-        _regKey.reset(new RegKey(HKEY(*external.Data())));
+        _regKey.attach(*external.Data());
         _path = info[1].As<Napi::String>().Utf8Value();
     } else if (info[0].IsString()) {
         _path = info[0].As<Napi::String>().Utf8Value();
@@ -236,12 +236,12 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
 
         std::string hostname, baseKeyName, subKeyName;
 
-        std::regex pattern("^(\\\\\\\\(.+?)\\\\)?([a-zA-Z_]+?)\\\\(.*)$");
+        std::regex pattern("^(\\\\\\\\(.+?)\\\\)?([a-zA-Z_]+?)(\\\\(.*))?$");
         std::smatch match;
-        if (std::regex_match(_path, match, pattern) && match.size() == 5) {
+        if (std::regex_match(_path, match, pattern) && match.size() == 6) {
             hostname = match[2];
             baseKeyName = match[3];
-            subKeyName = match[4];
+            subKeyName = match[5];
         } else {
             _throwRegKeyError(info, "Invalid key path");
             return;
@@ -253,7 +253,7 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
             return;
         }
 
-        _regKey.reset(new RegKey(baseKey, subKeyName, hostname, access));
+        _regKey.reset(baseKey, subKeyName, hostname, access);
     } else {
         throw Napi::TypeError::New(info.Env(), "Invalid base key");
     }
@@ -261,7 +261,7 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
 
 Napi::Value RegKeyWrap::isOpen(const Napi::CallbackInfo &info)
 {
-    return Napi::Boolean::New(info.Env(), _regKey->isOpen());
+    return Napi::Boolean::New(info.Env(), _regKey.isOpen());
 }
 
 Napi::Value RegKeyWrap::getPath(const Napi::CallbackInfo &info)
@@ -288,7 +288,7 @@ Napi::Value RegKeyWrap::getName(const Napi::CallbackInfo &info)
 
 Napi::Value RegKeyWrap::close(const Napi::CallbackInfo &info)
 {
-    _regKey->close();
+    _regKey.close();
     return info.Env().Undefined();
 }
 
@@ -301,7 +301,7 @@ Napi::Value RegKeyWrap::copy(const Napi::CallbackInfo &info)
     if (info[0].IsObject()
         && info[0].As<Napi::Object>().InstanceOf(RegKeyWrap::constructor.Value())) {
         RegKeyWrap *pRegKeyWrap = Napi::ObjectWrap<RegKeyWrap>::Unwrap(info[0].As<Napi::Object>());
-        return Napi::Boolean::New(info.Env(), _regKey->copyTree(pRegKeyWrap->_regKey->getHandle()));
+        return Napi::Boolean::New(info.Env(), _regKey.copyTree(pRegKeyWrap->_regKey.getHandle()));
     } else {
         throw Napi::TypeError::New(info.Env(), "Invalid source key");
     }
@@ -316,7 +316,7 @@ Napi::Value RegKeyWrap::getBinaryValue(const Napi::CallbackInfo &info)
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
         bool success = false;
-        ByteArray buffer = _regKey->getBinaryValue(valueName, &success);
+        ByteArray buffer = _regKey.getBinaryValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
             return info.Env().Null();
@@ -339,7 +339,7 @@ Napi::Value RegKeyWrap::getStringValue(const Napi::CallbackInfo &info)
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
         bool success = false;
-        std::string value = _regKey->getStringValue(valueName, &success);
+        std::string value = _regKey.getStringValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
             return info.Env().Null();
@@ -359,7 +359,7 @@ Napi::Value RegKeyWrap::getMultiStringValue(const Napi::CallbackInfo &info)
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
         bool success = false;
-        auto values = _regKey->getMultiStringValue(valueName, &success);
+        auto values = _regKey.getMultiStringValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
             return info.Env().Null();
@@ -384,7 +384,7 @@ Napi::Value RegKeyWrap::getDwordValue(const Napi::CallbackInfo &info)
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
         bool success = false;
-        DWORD value = _regKey->getDwordValue(valueName, &success);
+        DWORD value = _regKey.getDwordValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
             return info.Env().Null();
@@ -404,7 +404,7 @@ Napi::Value RegKeyWrap::getQwordValue(const Napi::CallbackInfo &info)
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
         bool success = false;
-        QWORD value = _regKey->getQwordValue(valueName, &success);
+        QWORD value = _regKey.getQwordValue(valueName, &success);
         if (!success) {
             _throwRegKeyError(info, "Failed to get value", valueName);
             return info.Env().Null();
@@ -423,7 +423,7 @@ Napi::Value RegKeyWrap::getValueType(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
-        DWORD type = _regKey->getValueType(valueName);
+        DWORD type = _regKey.getValueType(valueName);
         if (!type) {
             _throwRegKeyError(info, "Failed to get value type", valueName);
         }
@@ -440,7 +440,7 @@ Napi::Value RegKeyWrap::hasValue(const Napi::CallbackInfo &info)
     }
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
-        return Napi::Boolean::New(info.Env(), _regKey->hasValue(valueName));
+        return Napi::Boolean::New(info.Env(), _regKey.hasValue(valueName));
     } else {
         throw Napi::TypeError::New(info.Env(), "Value name expected");
     }
@@ -449,7 +449,7 @@ Napi::Value RegKeyWrap::hasValue(const Napi::CallbackInfo &info)
 Napi::Value RegKeyWrap::getValueNames(const Napi::CallbackInfo &info)
 {
     Napi::Array results = Napi::Array::New(info.Env());
-    auto values = _regKey->getValueNames();
+    auto values = _regKey.getValueNames();
     int i = 0;
     for (auto it = values.begin(); it != values.end(); it++, i++)
     {
@@ -477,7 +477,7 @@ Napi::Value RegKeyWrap::setBinaryValue(const Napi::CallbackInfo &info)
     }
 
     Napi::Buffer<byte> data = info[1].As<Napi::Buffer<byte>>();
-    return Napi::Boolean::New(info.Env(), _regKey->setBinaryValue(
+    return Napi::Boolean::New(info.Env(), _regKey.setBinaryValue(
         info[0].As<Napi::String>().Utf8Value(),
         data.Data(),
         data.Length(),
@@ -504,7 +504,7 @@ Napi::Value RegKeyWrap::setStringValue(const Napi::CallbackInfo &info)
 
     std::string valueName = info[0].As<Napi::String>().Utf8Value();
     std::string value = info[1].As<Napi::String>().Utf8Value();
-    return Napi::Boolean::New(info.Env(), _regKey->setStringValue(valueName, value, type));
+    return Napi::Boolean::New(info.Env(), _regKey.setStringValue(valueName, value, type));
 }
 
 Napi::Value RegKeyWrap::setMultiStringValue(const Napi::CallbackInfo &info)
@@ -532,7 +532,7 @@ Napi::Value RegKeyWrap::setMultiStringValue(const Napi::CallbackInfo &info)
             data.push_back(values.Get(i).As<Napi::String>().Utf8Value());
         }
     }
-    return Napi::Boolean::New(info.Env(), _regKey->setMultiStringValue(
+    return Napi::Boolean::New(info.Env(), _regKey.setMultiStringValue(
                                                 info[0].As<Napi::String>().Utf8Value(),
                                                 data,
                                                 type
@@ -556,7 +556,7 @@ Napi::Value RegKeyWrap::setDwordValue(const Napi::CallbackInfo &info)
         type = REG_DWORD;
     }
 
-    return Napi::Boolean::New(info.Env(), _regKey->setDwordValue(
+    return Napi::Boolean::New(info.Env(), _regKey.setDwordValue(
                                                 info[0].As<Napi::String>().Utf8Value(),
                                                 info[1].As<Napi::Number>().Int32Value(),
                                                 type
@@ -580,7 +580,7 @@ Napi::Value RegKeyWrap::setQwordValue(const Napi::CallbackInfo &info)
         type = REG_QWORD;
     }
 
-    return Napi::Boolean::New(info.Env(), _regKey->setQwordValue(
+    return Napi::Boolean::New(info.Env(), _regKey.setQwordValue(
                                                 info[0].As<Napi::String>().Utf8Value(),
                                                 info[1].As<Napi::Number>().Int64Value(),
                                                 type
@@ -595,7 +595,7 @@ Napi::Value RegKeyWrap::deleteValue(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string valueName = info[0].As<Napi::String>().Utf8Value();
-        return Napi::Boolean::New(info.Env(), _regKey->deleteValue(valueName));
+        return Napi::Boolean::New(info.Env(), _regKey.deleteValue(valueName));
     } else {
         throw Napi::TypeError::New(info.Env(), "Value name expected");
     }
@@ -605,7 +605,7 @@ void RegKeyWrap::setName(const Napi::CallbackInfo &info, const Napi::Value &valu
 {
     if (value.IsString()) {
         std::string newName = info[0].As<Napi::String>().Utf8Value();
-        if (_regKey->rename(newName)) {
+        if (_regKey.rename(newName)) {
             _path = _path.substr(0, _path.find_last_of('\\')) + '\\' + newName;
         }
     } else {
@@ -615,7 +615,7 @@ void RegKeyWrap::setName(const Napi::CallbackInfo &info, const Napi::Value &valu
 
 Napi::Value RegKeyWrap::deleteKey(const Napi::CallbackInfo &info)
 {
-    return Napi::Boolean::New(info.Env(), _regKey->deleteKey());
+    return Napi::Boolean::New(info.Env(), _regKey.deleteKey());
 }
 
 Napi::Value RegKeyWrap::openSubkey(const Napi::CallbackInfo &info)
@@ -646,7 +646,7 @@ Napi::Value RegKeyWrap::openSubkey(const Napi::CallbackInfo &info)
         }
     }
 
-    hKey = _regKey->openSubkey(keyName, access);
+    hKey = _regKey.openSubkey(keyName, access);
     if (hKey == NULL) {
         return info.Env().Null();
     }
@@ -682,7 +682,7 @@ Napi::Value RegKeyWrap::createSubkey(const Napi::CallbackInfo &info)
         }
     }
 
-    hKey = _regKey->createSubkey(keyName, access);
+    hKey = _regKey.createSubkey(keyName, access);
     if (hKey == NULL) {
         return info.Env().Null();
     }
@@ -698,7 +698,7 @@ Napi::Value RegKeyWrap::deleteSubkey(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string keyName = info[0].As<Napi::String>().Utf8Value();
-        return Napi::Boolean::New(info.Env(), _regKey->deleteSubkey(keyName));
+        return Napi::Boolean::New(info.Env(), _regKey.deleteSubkey(keyName));
     } else {
         throw Napi::TypeError::New(info.Env(), "Subkey name shuold be a String");
     }
@@ -707,7 +707,7 @@ Napi::Value RegKeyWrap::deleteSubkey(const Napi::CallbackInfo &info)
 Napi::Value RegKeyWrap::getSubkeyNames(const Napi::CallbackInfo &info)
 {
     Napi::Array results = Napi::Array::New(info.Env());
-    auto subkeys = _regKey->getSubkeyNames();
+    auto subkeys = _regKey.getSubkeyNames();
     int i = 0;
     for (auto it = subkeys.begin(); it != subkeys.end(); it++, i++)
     {
@@ -724,7 +724,7 @@ Napi::Value RegKeyWrap::hasSubkey(const Napi::CallbackInfo &info)
 
     if (info[0].IsString()) {
         std::string keyName = info[0].As<Napi::String>().Utf8Value();
-        return Napi::Boolean::New(info.Env(), _regKey->hasSubkey(keyName));
+        return Napi::Boolean::New(info.Env(), _regKey.hasSubkey(keyName));
     } else {
         throw Napi::TypeError::New(info.Env(), "Subkey name shuold be a string");
     }
@@ -732,7 +732,7 @@ Napi::Value RegKeyWrap::hasSubkey(const Napi::CallbackInfo &info)
 
 Napi::Value RegKeyWrap::isWritable(const Napi::CallbackInfo &info)
 {
-    return Napi::Boolean::New(info.Env(), _regKey->isWritable());
+    return Napi::Boolean::New(info.Env(), _regKey.isWritable());
 }
 
 void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value)

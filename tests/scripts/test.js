@@ -1,7 +1,7 @@
 const reg = require('../../index.js')
 
 const ms = new reg.RegKey('HKEY_LOCAL_MACHINE/Software/Microsoft', reg.RegKeyAccess.Read)
-if (!ms) {
+if (!ms.open) {
   console.log('Microsoft registry key not found')
   process.exit(1)
 }

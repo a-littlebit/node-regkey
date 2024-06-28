@@ -18,9 +18,9 @@ public:
 
   // 0 specifies use RegCreateKeyA
   RegKey(HKEY baseKey = NULL,
-         const std::string &subKeyName = "",
-         const std::string &hostname = "",
-         REGSAM access = 0);
+        const std::string &subKeyName = "",
+        const std::string &hostname = "",
+        REGSAM access = 0);
 
   ~RegKey() {
     close();
@@ -29,11 +29,14 @@ public:
   RegKey(const RegKey &) = delete;
   RegKey &operator=(const RegKey &) = delete;
 
+  // old handle will be closed
   HKEY open(HKEY baseKey, const std::string &subKeyName, REGSAM access = 0);
 
   HKEY create(HKEY baseKey, const std::string &subKeyName, REGSAM access = 0);
 
   HKEY connect(HKEY baseKey, const std::string &hostname);
+
+  HKEY reset(HKEY baseKey, const std::string &subKeyName, const std::string &hostname, REGSAM access = 0);
 
   HKEY attach(HKEY hKey);
 

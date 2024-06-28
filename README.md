@@ -76,7 +76,7 @@ If the key already exists, it will be directly opened
 You can also call the RegKey constructor to create a registry key
 
 ```
-const { RegKey } = require('regkey')
+const { RegKey, RegKeyAccess } = require('regkey')
 // specify full path
 const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp')
 // specify path parts
