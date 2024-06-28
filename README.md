@@ -88,7 +88,19 @@ const key = new RegKey('//hostname/HKCU/Software/MyApp', RegKeyAccess.Read)
 ```
 
 The RegAccessKey is an enum that specifies the access rights of the key
+
 You can find the definition of the enum in index.d.ts
+
+To specify multiple access rights, use bitwise OR to combine them
+
+or put them in an array
+
+```
+const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp', RegKeyAccess.Read | RegKeyAccess.ia32)
+//or
+const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp', [RegKeyAccess.Read, RegKeyAccess.ia32])
+```
+
 For more details, see the [MSDN](https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry-key-security-and-access-rights)
 
 #### Reading values

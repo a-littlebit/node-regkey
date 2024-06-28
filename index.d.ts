@@ -9,6 +9,16 @@ export declare enum RegKeyAccess {
   Execute = 0x20019,
   AllAccess = 0xf003f,
 
+  /**
+   * Access 32-bit registry keys on 64-bit systems
+   */
+  ia32 = 0x0200,
+
+  /**
+   * Access 64-bit registry keys on 64-bit systems
+   */
+  x64 = 0x0100,
+
   KEY_QUERY_VALUE = 0x0001,
   KEY_SET_VALUE = 0x0002,
   KEY_CREATE_SUB_KEY = 0x0004,

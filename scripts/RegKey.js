@@ -13,6 +13,9 @@ regkey.RegKeyAccess = {
   Execute: 0x20019,
   AllAccess: 0xF003F,
 
+  ia32: 0x0200,
+  x64: 0x0100,
+
   KEY_QUERY_VALUE: 0x0001,
   KEY_SET_VALUE: 0x0002,
   KEY_CREATE_SUB_KEY: 0x0004,
