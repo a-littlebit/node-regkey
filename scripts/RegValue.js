@@ -1,8 +1,6 @@
-const path = require('path')
 const util = require('util')
 
 const { throwRegKeyError } = require('./Error')
-const { getLastError } = require("node-gyp-build")(path.join(__dirname, ".."))
 
 const RegValueType = {
   REG_SZ                          : 'REG_SZ',
@@ -68,7 +66,7 @@ class RegValue {
       
       default:
         if (resultType) {
-          throwRegKeyError('Invalid result type', this.key, this.name, getLastError())
+          throwRegKeyError('Invalid result type', this.key, this.name, this.key.getLastError())
           return null
         } else {
           return this.key.getBinaryValue(this.name)
@@ -104,7 +102,7 @@ class RegValue {
           return this.key.setMultiStringValue(this.name, val, type || RegValueType.REG_MULTI_SZ)
         }
       default:
-        throwRegKeyError('Invalid value type', this.key, this.name, getLastError())
+        throwRegKeyError('Invalid value type', this.key, this.name, this.key.getLastError())
         return false
     }
   }

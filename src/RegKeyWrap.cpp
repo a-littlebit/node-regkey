@@ -129,9 +129,30 @@ std::string replace_string(const std::string& str, const std::string &from, cons
     return result;
 }
 
-Napi::Value getLastError(const Napi::CallbackInfo& info) {
-    Napi::Env env = info.Env();
-    return Napi::Number::New(env, GetLastError());
+std::string getErrorString(DWORD errorCode) {
+	LPSTR messageBuffer = nullptr;
+	size_t size = FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr, // Source
+		errorCode,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+		(LPSTR)&messageBuffer, // Output buffer
+		0, // Buffer size (ignored because FORMAT_MESSAGE_ALLOCATE_BUFFER is set)
+		nullptr // Arguments
+	);
+
+	if (size == 0) {
+        // Failed to format message, handle error...
+        LocalFree(messageBuffer);
+        char errorMessage[64];
+        sprintf_s(errorMessage, "Failed to format message with error code %d.", errorCode);
+        return errorMessage;
+	}
+
+	std::string errorMessage(messageBuffer, size);
+	LocalFree(messageBuffer); // Free the buffer allocated by FormatMessage
+
+	return errorMessage;
 }
 
 Napi::FunctionReference RegKeyWrap::constructor;
@@ -144,6 +165,7 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
         InstanceAccessor("name", &RegKeyWrap::getName, &RegKeyWrap::setName),
         InstanceAccessor("open", &RegKeyWrap::isOpen, nullptr),
 
+        InstanceMethod("getLastError", &RegKeyWrap::getLastError),
         InstanceMethod("copy", &RegKeyWrap::copy),
         InstanceMethod("close", &RegKeyWrap::close),
 
@@ -184,8 +206,6 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
     exports.Set("hkpd", NewInstance(env, HKEY_PERFORMANCE_DATA,    "HKEY_PERFORMANCE_DATA"));
     exports.Set("hkpt", NewInstance(env, HKEY_PERFORMANCE_TEXT,    "HKEY_PERFORMANCE_TEXT"));
     exports.Set("hkpn", NewInstance(env, HKEY_PERFORMANCE_NLSTEXT, "HKEY_PERFORMANCE_NLSTEXT"));
-    
-    exports.Set("getLastError", Napi::Function::New(env, getLastError, "getLastError"));
 
     return exports;
 }
@@ -215,14 +235,14 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
 
         REGSAM access = 0;
 
-        for (int i = 1; i < info.Length(); i++) {
+        for (uint32_t i = 1; i < info.Length(); i++) {
             if (info[i].IsString()) {
                 _path += "\\" + info[i].As<Napi::String>().Utf8Value();
             } else if (info[i].IsNumber()) {
                 access |= info[i].As<Napi::Number>().Int32Value();
             } else if (info[i].IsArray()) {
                 Napi::Array accessArray = info[i].As<Napi::Array>();
-                for (int j = 0; j < accessArray.Length(); j++) {
+                for (uint32_t j = 0; j < accessArray.Length(); j++) {
                     if (accessArray.Get(j).IsNumber()) {
                         access |= accessArray.Get(j).As<Napi::Number>().Int32Value();
                     }
@@ -622,6 +642,11 @@ void RegKeyWrap::setName(const Napi::CallbackInfo &info, const Napi::Value &valu
     }
 }
 
+Napi::Value RegKeyWrap::getLastError(const Napi::CallbackInfo &info)
+{
+    return Napi::String::New(info.Env(), getErrorString(_regKey.getLastStatus()));
+}
+
 Napi::Value RegKeyWrap::deleteKey(const Napi::CallbackInfo &info)
 {
     return Napi::Boolean::New(info.Env(), _regKey.deleteKey());
@@ -744,7 +769,9 @@ Napi::Value RegKeyWrap::isWritable(const Napi::CallbackInfo &info)
     return Napi::Boolean::New(info.Env(), _regKey.isWritable());
 }
 
-void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info, const std::string &message, const std::string &value)
+void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info,
+                                   const std::string &message,
+                                   const std::string &value)
 {
     // 从 prototype 获取 __throwRegKeyError__ 函数
     Napi::Object thisObj = info.This().As<Napi::Object>();
@@ -755,7 +782,7 @@ void RegKeyWrap::_throwRegKeyError(const Napi::CallbackInfo &info, const std::st
                 Napi::String::New(info.Env(), message),
                 thisObj,
                 Napi::String::New(info.Env(), value),
-                Napi::Number::New(info.Env(), GetLastError())
+                Napi::String::New(info.Env(), getErrorString(_regKey.getLastStatus()))
             });
     }
 }

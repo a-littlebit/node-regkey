@@ -54,6 +54,14 @@ public:
     return _hKey;
   }
 
+  LSTATUS getLastStatus() const {
+    return _lastStatus;
+  }
+
+  LSTATUS setLastStatus(LSTATUS status) {
+    return _lastStatus = status;
+  }
+
   bool copyTree(HKEY hSrc);
 
   bool rename(const std::string &newName);
@@ -63,19 +71,19 @@ public:
   // returns -1 if failed
   int getValueSize(const std::string &valueName);
 
-  ByteArray getBinaryValue(const std::string &valueName, bool *success = nullptr) const;
+  ByteArray getBinaryValue(const std::string &valueName, bool *success = nullptr);
 
-  std::string getStringValue(const std::string &valueName, bool *success = nullptr) const;
+  std::string getStringValue(const std::string &valueName, bool *success = nullptr);
 
-  DWORD getDwordValue(const std::string &valueName, bool *success = nullptr) const;
+  DWORD getDwordValue(const std::string &valueName, bool *success = nullptr);
 
-  QWORD getQwordValue(const std::string &valueName, bool *success = nullptr) const;
+  QWORD getQwordValue(const std::string &valueName, bool *success = nullptr);
 
-  std::list<std::string> getMultiStringValue(const std::string &valueName, bool *success = nullptr) const;
+  std::list<std::string> getMultiStringValue(const std::string &valueName, bool *success = nullptr);
 
-  std::list<ValueInfo> getValues() const;
+  std::list<ValueInfo> getValues();
 
-  std::list<std::string> getValueNames() const;
+  std::list<std::string> getValueNames();
 
   bool putValue(const ValueInfo &value);
 
@@ -92,9 +100,9 @@ public:
   int putValues(const std::list<ValueInfo> &values);
 
   // returns 0 if failed
-  DWORD getValueType(const std::string &valueName) const;
+  DWORD getValueType(const std::string &valueName);
 
-  bool deleteKey() const;
+  bool deleteKey();
 
   HKEY openSubkey(const std::string &subkeyName, REGSAM access = 0);
 
@@ -102,16 +110,17 @@ public:
 
   bool deleteSubkey(const std::string &subkeyName);
 
-  bool hasValue(const std::string &valueName) const;
+  bool hasValue(const std::string &valueName);
 
-  bool isWritable() const;
+  bool isWritable();
 
   bool deleteValue(const std::string &valueName);
 
-  bool hasSubkey(const std::string &subkeyName) const;
+  bool hasSubkey(const std::string &subkeyName);
 
-  std::list<std::string> getSubkeyNames() const;
+  std::list<std::string> getSubkeyNames();
 
 private:
   HKEY _hKey;
+  LSTATUS _lastStatus;
 };

@@ -152,11 +152,13 @@ RegKeyError: Failed to get value
     at ... {
   key: RegKey {...},
   value: 'A-nonexistent-value',
-  lastErrorCode: 203
+  lastError: 'The system cannot find the file specified.\r\n'
 }
 ```
 
-The 'lastErrorCode' field is the value returned by GetLastError()
+The 'lastError' field is the value returned by RegKey.getLastError()
+
+It is a string containing the error message formatted by the Windows API from the error code of last API call
 
 If you don't want to receive a RegKeyError even if a function failed, use disableRegKeyErrors
 

@@ -110,6 +110,14 @@ export declare class RegKey {
    * @readonly The key is open or not.
    */
   readonly open: boolean
+
+  /**
+   * Get the last error message
+   * 
+   * 
+   * @returns An error message formatted by the Windows API from the error code of last API call
+   */
+  getLastError(): string
   
   /**
    * Copy the subkey tree from the source key to the current key.
@@ -441,12 +449,12 @@ export declare class RegKeyError extends Error {
    * @param message - The error message.
    * @param key - The RegKey object.
    * @param value - The name of the value.
-   * @param lastErrorCode - The last error code. Call getLastError() to get it.
+   * @param lastError - The last error message. Call RegKey.getLastError() to get it.
    */
   constructor(message: string,
               key: RegKey,
               value: string,
-              lastErrorCode: number)
+              lastError: string)
 
   /**
    * The RegKey object.
@@ -459,9 +467,9 @@ export declare class RegKeyError extends Error {
   value: string
 
   /**
-   * The last error code.
+   * The last error message.
    */
-  lastErrorCode: number
+  lastError: string
 }
 
 /**
@@ -470,12 +478,12 @@ export declare class RegKeyError extends Error {
  * @param message - The error message.
  * @param key - The RegKey object.
  * @param value - The name of the value.
- * @param lastErrorCode - The last error code. Call getLastError() to get it.
+ * @param lastError - The last error message. Call RegKey.getLastError() to get it.
  */
 export declare function throwRegKeyError(message: string,
                                           key: RegKey,
                                           value: string,
-                                          lastErrorCode: number): void
+                                          lastError: string): void
                                                                                  
 /**
  * Disable RegKeyError.
@@ -484,14 +492,6 @@ export declare function throwRegKeyError(message: string,
  * @param disabled - If not set to false, RegKeyError will be disabled.
  */
 export declare function disableRegKeyErrors(disabled?: boolean): void
-
-/**
- * Get the last error code.
- * It is a wrapper of GetLastError() function in Windows API.
- * 
- * @returns The last error code.
- */
-export declare function getLastError(): number
 
 /**
  * A RegKey object related to HKEY_CLASS_ROOT.

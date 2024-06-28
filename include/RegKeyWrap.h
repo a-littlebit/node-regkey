@@ -21,6 +21,8 @@ public:
 
   void setName(const Napi::CallbackInfo &info, const Napi::Value &value);
 
+  Napi::Value getLastError(const Napi::CallbackInfo &info);
+
   Napi::Value close(const Napi::CallbackInfo &info);
 
   Napi::Value copy(const Napi::CallbackInfo &info);
@@ -72,9 +74,9 @@ public:
   Napi::Value isWritable(const Napi::CallbackInfo &info);
 
 private:
-  static void _throwRegKeyError(const Napi::CallbackInfo &info,
-                                const std::string &message,
-                                const std::string &value = "");
+  void _throwRegKeyError(const Napi::CallbackInfo &info,
+                         const std::string &message,
+                         const std::string &value = "");
 
   RegKey _regKey;
   std::string _path;
