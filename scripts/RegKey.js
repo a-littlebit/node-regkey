@@ -48,6 +48,7 @@ RegKey.prototype[util.inspect.custom] = function (depth, options) {
     path: this.path,
     name: this.name,
     open: this.open,
+    lastStatus: this.lastStatus,
     ...this
   }, options)
 }

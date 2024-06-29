@@ -164,6 +164,7 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
         InstanceAccessor("host", &RegKeyWrap::getHost, nullptr),
         InstanceAccessor("name", &RegKeyWrap::getName, &RegKeyWrap::setName),
         InstanceAccessor("open", &RegKeyWrap::isOpen, nullptr),
+        InstanceAccessor("lastStatus", &RegKeyWrap::getLastStatus, &RegKeyWrap::setLastStatus),
 
         InstanceMethod("getLastError", &RegKeyWrap::getLastError),
         InstanceMethod("copy", &RegKeyWrap::copy),
@@ -639,6 +640,20 @@ void RegKeyWrap::setName(const Napi::CallbackInfo &info, const Napi::Value &valu
         }
     } else {
         throw Napi::TypeError::New(info.Env(), "New key name expected");
+    }
+}
+
+Napi::Value RegKeyWrap::getLastStatus(const Napi::CallbackInfo &info)
+{
+    return Napi::Number::New(info.Env(), _regKey.getLastStatus());
+}
+
+void RegKeyWrap::setLastStatus(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+    if (value.IsNumber()) {
+        _regKey.setLastStatus(value.As<Napi::Number>().Int32Value());
+    } else {
+        throw Napi::TypeError::New(info.Env(), "Number expected");
     }
 }
 

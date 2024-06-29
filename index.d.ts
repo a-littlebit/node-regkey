@@ -112,6 +112,11 @@ export declare class RegKey {
   readonly open: boolean
 
   /**
+   * Get or set the status code of the last API call.
+   */
+  lastStatus: number
+
+  /**
    * Get the last error message
    * 
    * 

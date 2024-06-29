@@ -21,6 +21,10 @@ public:
 
   void setName(const Napi::CallbackInfo &info, const Napi::Value &value);
 
+  Napi::Value getLastStatus(const Napi::CallbackInfo &info);
+
+  void setLastStatus(const Napi::CallbackInfo &info, const Napi::Value &value);
+
   Napi::Value getLastError(const Napi::CallbackInfo &info);
 
   Napi::Value close(const Napi::CallbackInfo &info);
