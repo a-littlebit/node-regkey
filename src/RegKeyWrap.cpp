@@ -697,6 +697,7 @@ Napi::Value RegKeyWrap::openSubkey(const Napi::CallbackInfo &info)
 
     hKey = _regKey.openSubkey(keyName, access);
     if (hKey == NULL) {
+        _throwRegKeyError(info, "Failed to open subkey");
         return info.Env().Null();
     }
 
@@ -733,6 +734,7 @@ Napi::Value RegKeyWrap::createSubkey(const Napi::CallbackInfo &info)
 
     hKey = _regKey.createSubkey(keyName, access);
     if (hKey == NULL) {
+        _throwRegKeyError(info, "Failed to create subkey");
         return info.Env().Null();
     }
 
