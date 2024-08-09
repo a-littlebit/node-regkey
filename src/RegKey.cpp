@@ -3,7 +3,7 @@
 #define MAX_KEY_LENGTH 255
 #define MAX_VALUE_NAME 16383
 
-RegKey::RegKey(HKEY baseKey, const std::string &subKeyName, const std::string &hostname, REGSAM access)
+RegKey::RegKey(HKEY baseKey, const std::wstring &subKeyName, const std::wstring &hostname, REGSAM access)
     : _hKey(NULL)
     , _lastStatus(ERROR_SUCCESS)
 {
@@ -12,46 +12,46 @@ RegKey::RegKey(HKEY baseKey, const std::string &subKeyName, const std::string &h
     }
 }
 
-HKEY RegKey::open(HKEY baseKey, const std::string &subKeyName, REGSAM access)
+HKEY RegKey::open(HKEY baseKey, const std::wstring &subKeyName, REGSAM access)
 {
     close();
 
-    if (access && setLastStatus(RegOpenKeyExA(baseKey, subKeyName.c_str(), access, 0, &_hKey)) == ERROR_SUCCESS) {
+    if (access && setLastStatus(RegOpenKeyExW(baseKey, subKeyName.c_str(), access, 0, &_hKey)) == ERROR_SUCCESS) {
         return _hKey;
     }
-    if (!access && setLastStatus(RegOpenKeyA(baseKey, subKeyName.c_str(), &_hKey)) == ERROR_SUCCESS) {
+    if (!access && setLastStatus(RegOpenKeyW(baseKey, subKeyName.c_str(), &_hKey)) == ERROR_SUCCESS) {
         return _hKey;
     }
     _hKey = NULL;
     return NULL;
 }
 
-HKEY RegKey::create(HKEY baseKey, const std::string &subKeyName, REGSAM access)
+HKEY RegKey::create(HKEY baseKey, const std::wstring &subKeyName, REGSAM access)
 {
     close();
 
-    if (access && setLastStatus(RegCreateKeyExA(baseKey, subKeyName.c_str(), 0, NULL,
+    if (access && setLastStatus(RegCreateKeyExW(baseKey, subKeyName.c_str(), 0, NULL,
                                       REG_OPTION_NON_VOLATILE, access, NULL, &_hKey, NULL)) == ERROR_SUCCESS) {
         return _hKey;
     }
-    if (!access && setLastStatus(RegCreateKeyA(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)) {
+    if (!access && setLastStatus(RegCreateKeyW(baseKey, subKeyName.c_str(), &_hKey) == ERROR_SUCCESS)) {
         return _hKey;
     }
     _hKey = NULL;
     return NULL;
 }
 
-HKEY RegKey::connect(HKEY baseKey, const std::string &hostname)
+HKEY RegKey::connect(HKEY baseKey, const std::wstring &hostname)
 {
     close();
 
-    if (setLastStatus(RegConnectRegistryA(hostname.c_str(), baseKey, &_hKey)) == ERROR_SUCCESS)
+    if (setLastStatus(RegConnectRegistryW(hostname.c_str(), baseKey, &_hKey)) == ERROR_SUCCESS)
         return _hKey;
     _hKey = NULL;
     return NULL;
 }
 
-HKEY RegKey::reset(HKEY baseKey, const std::string &subKeyName, const std::string &hostname, REGSAM access)
+HKEY RegKey::reset(HKEY baseKey, const std::wstring &subKeyName, const std::wstring &hostname, REGSAM access)
 {
     close();
 
@@ -86,23 +86,18 @@ bool RegKey::copyTree(HKEY hSrc)
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegCopyTreeA(hSrc, NULL, _hKey)) == ERROR_SUCCESS;
+    return setLastStatus(RegCopyTreeW(hSrc, NULL, _hKey)) == ERROR_SUCCESS;
 }
 
-bool RegKey::rename(const std::string &newName)
+bool RegKey::rename(const std::wstring &newName)
 {
     if (_hKey == NULL)
         return false;
 
-    // 转换成 wstring
-    wchar_t *newNameW = new wchar_t[newName.size() + 1];
-    MultiByteToWideChar(CP_ACP, 0, newName.c_str(), -1, newNameW, int(newName.size()) + 1);
-    bool success = setLastStatus(RegRenameKey(_hKey, NULL, newNameW) == ERROR_SUCCESS);
-    delete[] newNameW;
-    return success;
+    return setLastStatus(RegRenameKey(_hKey, NULL, newName.c_str()) == ERROR_SUCCESS);
 }
 
-ValueInfo RegKey::getValue(const std::string &valueName, bool *success)
+ValueInfo RegKey::getValue(const std::wstring &valueName, bool *success)
 {
     ValueInfo info;
     info.name = valueName;
@@ -114,14 +109,14 @@ ValueInfo RegKey::getValue(const std::string &valueName, bool *success)
     }
 
     DWORD size = 0;
-    if (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, &info.type, NULL, &size)) != ERROR_SUCCESS) {
+    if (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, &info.type, NULL, &size)) != ERROR_SUCCESS) {
         if (success != NULL)
             *success = false;
         return info;
     }
     if (size > 0) {
         info.data.resize(size);
-        if (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, info.data.data(), &size)) != ERROR_SUCCESS) {
+        if (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, info.data.data(), &size)) != ERROR_SUCCESS) {
             if (success != NULL) {
                 *success = false;
             }
@@ -134,19 +129,19 @@ ValueInfo RegKey::getValue(const std::string &valueName, bool *success)
     return info;
 }
 
-int RegKey::getValueSize(const std::string &valueName)
+int RegKey::getValueSize(const std::wstring &valueName)
 {
     if (_hKey == NULL)
         return -1;
 
     DWORD size = 0;
-    if (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, NULL, &size)) == ERROR_SUCCESS)
+    if (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, NULL, &size)) == ERROR_SUCCESS)
         return size;
     else
         return -1;
 }
 
-ByteArray RegKey::getBinaryValue(const std::string &valueName, bool *success)
+ByteArray RegKey::getBinaryValue(const std::wstring &valueName, bool *success)
 {
     if (_hKey == NULL) {
         if (success != NULL)
@@ -155,7 +150,7 @@ ByteArray RegKey::getBinaryValue(const std::string &valueName, bool *success)
     }
 
     DWORD valueSize = 0;
-    if (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, NULL, &valueSize)) != ERROR_SUCCESS) {
+    if (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, NULL, &valueSize)) != ERROR_SUCCESS) {
         if (success != NULL)
             *success = false;
         return ByteArray();
@@ -166,46 +161,46 @@ ByteArray RegKey::getBinaryValue(const std::string &valueName, bool *success)
         return ByteArray();
     }
     ByteArray value(valueSize, 0);
-    bool res = (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, value.data(), &valueSize)) == ERROR_SUCCESS);
+    bool res = (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, value.data(), &valueSize)) == ERROR_SUCCESS);
     if (success != NULL)
         *success = res;
     
     return value;
 }
 
-std::string RegKey::getStringValue(const std::string &valueName, bool *success)
+std::wstring RegKey::getStringValue(const std::wstring &valueName, bool *success)
 {
     if (_hKey == NULL) {
         if (success != NULL)
             *success = false;
-        return "";
+        return L"";
     }
         
     DWORD valueSize = 0;
     DWORD type = 0;
-    if (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, &type, NULL, &valueSize)) != ERROR_SUCCESS
+    if (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, &type, NULL, &valueSize)) != ERROR_SUCCESS
         || (type != REG_SZ && type != REG_EXPAND_SZ)) {
         if (success != NULL)
             *success = false;
-        return "";
+        return L"";
     }
     if (valueSize <= 0) {
         if (success != NULL) {
             *success = true;
         }
-        return "";
+        return L"";
     }
-    char *valueData = new char[valueSize];
-    bool res = (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(valueData), &valueSize)) == ERROR_SUCCESS);
+    wchar_t *valueData = new wchar_t[valueSize];
+    bool res = (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(valueData), &valueSize)) == ERROR_SUCCESS);
     if (success != NULL)
         *success = res;
 
-    std::string value = res ? valueData : "";
+    std::wstring value = res ? valueData : L"";
     delete[] valueData;
     return value;
 }
 
-DWORD RegKey::getDwordValue(const std::string &valueName, bool *success)
+DWORD RegKey::getDwordValue(const std::wstring &valueName, bool *success)
 {
     if (_hKey == NULL)
     {
@@ -216,14 +211,14 @@ DWORD RegKey::getDwordValue(const std::string &valueName, bool *success)
 
     DWORD value = 0;
     DWORD valueSize = sizeof(value);
-    bool res = (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(&value), &valueSize)) == ERROR_SUCCESS);
+    bool res = (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(&value), &valueSize)) == ERROR_SUCCESS);
     if (success != NULL)
         *success = res;
 
     return value;
 }
 
-QWORD RegKey::getQwordValue(const std::string &valueName, bool *success)
+QWORD RegKey::getQwordValue(const std::wstring &valueName, bool *success)
 {
     if (_hKey == NULL)
     {
@@ -234,14 +229,14 @@ QWORD RegKey::getQwordValue(const std::string &valueName, bool *success)
 
     QWORD value = 0;
     DWORD valueSize = sizeof(value);
-    bool res = (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(&value), &valueSize)) == ERROR_SUCCESS);
+    bool res = (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(&value), &valueSize)) == ERROR_SUCCESS);
     if (success != NULL)
         *success = res;
 
     return value;
 }
 
-std::list<std::string> RegKey::getMultiStringValue(const std::string &valueName, bool *success)
+std::list<std::wstring> RegKey::getMultiStringValue(const std::wstring &valueName, bool *success)
 {
     if (_hKey == NULL)
     {
@@ -252,14 +247,14 @@ std::list<std::string> RegKey::getMultiStringValue(const std::string &valueName,
 
     DWORD valueSize = 0;
     DWORD type = REG_NONE;
-    if (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, &type, NULL, &valueSize)) != ERROR_SUCCESS
+    if (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, &type, NULL, &valueSize)) != ERROR_SUCCESS
         || type != REG_MULTI_SZ) {
         if (success != NULL)
             *success = false;
         return {};
     }
 
-    std::list<std::string> values;
+    std::list<std::wstring> values;
 
     if (valueSize <= 0) {
         if (success != NULL)
@@ -267,13 +262,13 @@ std::list<std::string> RegKey::getMultiStringValue(const std::string &valueName,
         return values;
     }
 
-    char *valueData = new char[valueSize];
-    char *p = valueData;
-    bool res = (setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(valueData), &valueSize)) == ERROR_SUCCESS);
+    wchar_t *valueData = new wchar_t[valueSize];
+    wchar_t *p = valueData;
+    bool res = (setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, LPBYTE(valueData), &valueSize)) == ERROR_SUCCESS);
     if (res) {
         while (p < valueData + valueSize - 1) {
             values.push_back(p);
-            p += strlen(p) + 1;
+            p += wcslen(p) + 1;
         }
     }
     delete[] valueData;
@@ -290,14 +285,14 @@ std::list<ValueInfo> RegKey::getValues()
 
     DWORD maxName = 0, maxValue = 0;
     if (setLastStatus(
-            RegQueryInfoKeyA(_hKey, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &maxName, &maxValue, NULL, NULL)
+            RegQueryInfoKeyW(_hKey, NULL, NULL, NULL, NULL, NULL, NULL, NULL, &maxName, &maxValue, NULL, NULL)
             != ERROR_SUCCESS)) {
         return {};
     }
     maxName++;
 
     std::list<ValueInfo> values;
-    char *valueName = new char[maxName];
+    wchar_t *valueName = new wchar_t[maxName];
     byte *valueData = new byte[maxValue];
 
     for (DWORD index = 0; ; index++) {
@@ -305,14 +300,14 @@ std::list<ValueInfo> RegKey::getValues()
         DWORD valueNameSize = maxName;
         valueInfo.type = REG_NONE;
         DWORD valueSize = 0;
-        if (setLastStatus(RegEnumValueA(_hKey, index, valueName, &valueNameSize, NULL,
+        if (setLastStatus(RegEnumValueW(_hKey, index, valueName, &valueNameSize, NULL,
                 &valueInfo.type, NULL, &valueSize)) != ERROR_SUCCESS) {
             break;
         }
         valueInfo.name = valueName;
 
         if (valueSize > 0) {
-            if (setLastStatus(RegQueryValueExA(_hKey, valueInfo.name.c_str(), NULL, NULL, LPBYTE(valueData), &valueSize)) != ERROR_SUCCESS) {
+            if (setLastStatus(RegQueryValueExW(_hKey, valueInfo.name.c_str(), NULL, NULL, LPBYTE(valueData), &valueSize)) != ERROR_SUCCESS) {
                 continue;
             }
             valueInfo.data.assign(valueData, valueData + valueSize);
@@ -326,17 +321,17 @@ std::list<ValueInfo> RegKey::getValues()
     return values;
 }
 
-std::list<std::string> RegKey::getValueNames()
+std::list<std::wstring> RegKey::getValueNames()
 {
     if (_hKey == NULL)
-        return std::list<std::string>();
+        return std::list<std::wstring>();
 
-    std::list<std::string> valueNames;
-    char valueName[MAX_VALUE_NAME];
+    std::list<std::wstring> valueNames;
+    wchar_t valueName[MAX_VALUE_NAME];
     DWORD valueNameSize;
     for (DWORD index = 0; ; index++) {
         valueNameSize = MAX_VALUE_NAME;
-        if (setLastStatus(RegEnumValueA(_hKey, index, valueName, &valueNameSize, nullptr, nullptr, nullptr, nullptr))
+        if (setLastStatus(RegEnumValueW(_hKey, index, valueName, &valueNameSize, nullptr, nullptr, nullptr, nullptr))
                 != ERROR_SUCCESS)
             break;
         valueNames.push_back(valueName);
@@ -350,47 +345,47 @@ bool RegKey::putValue(const ValueInfo &value)
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegSetValueExA(_hKey, value.name.c_str(), 0,
+    return setLastStatus(RegSetValueExW(_hKey, value.name.c_str(), 0,
         value.type, value.data.data(), DWORD(value.data.size()))) == ERROR_SUCCESS;
 }
 
-bool RegKey::setStringValue(const std::string &valueName, const std::string &value, DWORD type)
+bool RegKey::setStringValue(const std::wstring &valueName, const std::wstring &value, DWORD type)
 {
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegSetValueExA(_hKey, valueName.c_str(), 0, type, 
+    return setLastStatus(RegSetValueExW(_hKey, valueName.c_str(), 0, type, 
         reinterpret_cast<const BYTE *>(value.c_str()), DWORD(value.size() + 1))) == ERROR_SUCCESS;
 }
 
-bool RegKey::setBinaryValue(const std::string &valueName, const void *value, size_t size, DWORD type)
+bool RegKey::setBinaryValue(const std::wstring &valueName, const void *value, size_t size, DWORD type)
 {
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegSetValueExA(_hKey, valueName.c_str(), 0, type,
+    return setLastStatus(RegSetValueExW(_hKey, valueName.c_str(), 0, type,
         static_cast<const BYTE *>(value), DWORD(size))) == ERROR_SUCCESS;
 }
 
-bool RegKey::setDwordValue(const std::string &valueName, DWORD value, DWORD type)
+bool RegKey::setDwordValue(const std::wstring &valueName, DWORD value, DWORD type)
 {
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegSetValueExA(_hKey, valueName.c_str(), 0, type,
+    return setLastStatus(RegSetValueExW(_hKey, valueName.c_str(), 0, type,
         reinterpret_cast<const BYTE*>(&value), sizeof(DWORD))) == ERROR_SUCCESS;
 }
 
-bool RegKey::setQwordValue(const std::string &valueName, QWORD value, DWORD type)
+bool RegKey::setQwordValue(const std::wstring &valueName, QWORD value, DWORD type)
 {
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegSetValueExA(_hKey, valueName.c_str(), 0, type,
+    return setLastStatus(RegSetValueExW(_hKey, valueName.c_str(), 0, type,
         reinterpret_cast<const BYTE*>(&value), sizeof(QWORD))) == ERROR_SUCCESS;
 }
 
-bool RegKey::setMultiStringValue(const std::string &valueName, const std::list<std::string> &value, DWORD type)
+bool RegKey::setMultiStringValue(const std::wstring &valueName, const std::list<std::wstring> &value, DWORD type)
 {
     if (_hKey == NULL)
         return false;
@@ -399,14 +394,14 @@ bool RegKey::setMultiStringValue(const std::string &valueName, const std::list<s
     for (auto it = value.begin(); it != value.end(); it++) {
         size += it->size() + 1;
     }
-    char *valueData = new char[size];
-    char *p = valueData;
+    wchar_t *valueData = new wchar_t[size];
+    wchar_t *p = valueData;
     for (auto it = value.begin(); it != value.end(); it++) {
-        strcpy_s(p, it->size() + 1, it->c_str());
+        wcscpy_s(p, it->size() + 1, it->c_str());
         p += it->size() + 1;
     }
     *p = '\0';
-    bool res = (setLastStatus(RegSetValueExA(_hKey, valueName.c_str(), 0, type, LPBYTE(valueData), DWORD(size))) == ERROR_SUCCESS);
+    bool res = (setLastStatus(RegSetValueExW(_hKey, valueName.c_str(), 0, type, LPBYTE(valueData), DWORD(size))) == ERROR_SUCCESS);
     delete[] valueData;
 
     return res;
@@ -419,7 +414,7 @@ int RegKey::putValues(const std::list<ValueInfo> &values)
 
     int successCount = 0;
     for (auto it = values.begin(); it != values.end(); it++) {
-        if (setLastStatus(RegSetValueExA(_hKey, it->name.c_str(), 0, it->type,
+        if (setLastStatus(RegSetValueExW(_hKey, it->name.c_str(), 0, it->type,
                 it->data.data(), DWORD(it->data.size()))) == ERROR_SUCCESS) {
             successCount++;
         }
@@ -427,13 +422,13 @@ int RegKey::putValues(const std::list<ValueInfo> &values)
     return successCount;
 }
 
-DWORD RegKey::getValueType(const std::string &valueName)
+DWORD RegKey::getValueType(const std::wstring &valueName)
 {
     if (_hKey == NULL)
         return REG_NONE;
 
     DWORD type = 0;
-    setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, &type, NULL, NULL));
+    setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, &type, NULL, NULL));
     return type;
 }
 
@@ -442,57 +437,57 @@ bool RegKey::deleteKey()
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegDeleteTreeA(_hKey, NULL)) == ERROR_SUCCESS;
+    return setLastStatus(RegDeleteTreeW(_hKey, NULL)) == ERROR_SUCCESS;
 }
 
-HKEY RegKey::openSubkey(const std::string &subkeyName, REGSAM access)
+HKEY RegKey::openSubkey(const std::wstring &subkeyName, REGSAM access)
 {
     if (_hKey == NULL)
         return NULL;
 
     HKEY hKey = NULL;
-    if (access && setLastStatus(RegOpenKeyExA(_hKey, subkeyName.c_str(), 0, access, &hKey)) == ERROR_SUCCESS) {
+    if (access && setLastStatus(RegOpenKeyExW(_hKey, subkeyName.c_str(), 0, access, &hKey)) == ERROR_SUCCESS) {
         return hKey;
     }
-    if (!access && setLastStatus(RegOpenKeyA(_hKey, subkeyName.c_str(), &hKey)) == ERROR_SUCCESS) {
+    if (!access && setLastStatus(RegOpenKeyW(_hKey, subkeyName.c_str(), &hKey)) == ERROR_SUCCESS) {
         return hKey;
     }
 
     return NULL;
 }
 
-HKEY RegKey::createSubkey(const std::string &subkeyName, REGSAM access)
+HKEY RegKey::createSubkey(const std::wstring &subkeyName, REGSAM access)
 {
     if (_hKey == NULL)
         return NULL;
 
     HKEY hKey = NULL;
-    if (access && setLastStatus(RegCreateKeyExA(_hKey, subkeyName.c_str(), 0, NULL,
+    if (access && setLastStatus(RegCreateKeyExW(_hKey, subkeyName.c_str(), 0, NULL,
                                       REG_OPTION_NON_VOLATILE, access, NULL, &hKey, NULL)) == ERROR_SUCCESS) {
         return hKey;
     }
-    if (!access && setLastStatus(RegCreateKeyA(_hKey, subkeyName.c_str(), &hKey)) == ERROR_SUCCESS) {
+    if (!access && setLastStatus(RegCreateKeyW(_hKey, subkeyName.c_str(), &hKey)) == ERROR_SUCCESS) {
         return hKey;
     }
 
     return NULL;
 }
 
-bool RegKey::deleteSubkey(const std::string &subkeyName)
+bool RegKey::deleteSubkey(const std::wstring &subkeyName)
 {
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegDeleteTreeA(_hKey, subkeyName.c_str())) == ERROR_SUCCESS;
+    return setLastStatus(RegDeleteTreeW(_hKey, subkeyName.c_str())) == ERROR_SUCCESS;
 }
 
-bool RegKey::hasValue(const std::string &valueName)
+bool RegKey::hasValue(const std::wstring &valueName)
 {
     if (_hKey == NULL)
         return false;
 
     DWORD valueSize = 0;
-    return setLastStatus(RegQueryValueExA(_hKey, valueName.c_str(), NULL, NULL, NULL, &valueSize)) == ERROR_SUCCESS;
+    return setLastStatus(RegQueryValueExW(_hKey, valueName.c_str(), NULL, NULL, NULL, &valueSize)) == ERROR_SUCCESS;
 }
 
 bool RegKey::isWritable()
@@ -501,43 +496,43 @@ bool RegKey::isWritable()
         return false;
 
     HKEY hKey = NULL;
-    if (setLastStatus(RegOpenKeyExA(_hKey, NULL, 0, KEY_WRITE, &hKey)) != ERROR_SUCCESS) {
+    if (setLastStatus(RegOpenKeyExW(_hKey, NULL, 0, KEY_WRITE, &hKey)) != ERROR_SUCCESS) {
         return false;
     }
     RegCloseKey(hKey);
     return true;
 }
 
-bool RegKey::deleteValue(const std::string &valueName)
+bool RegKey::deleteValue(const std::wstring &valueName)
 {
     if (_hKey == NULL)
         return false;
 
-    return setLastStatus(RegDeleteValueA(_hKey, valueName.c_str())) == ERROR_SUCCESS;
+    return setLastStatus(RegDeleteValueW(_hKey, valueName.c_str())) == ERROR_SUCCESS;
 }
 
-bool RegKey::hasSubkey(const std::string &subkeyName)
+bool RegKey::hasSubkey(const std::wstring &subkeyName)
 {
     if (_hKey == NULL)
         return false;
 
     HKEY hKey = NULL;
-    if (setLastStatus(RegOpenKeyA(_hKey, subkeyName.c_str(), &hKey)) != ERROR_SUCCESS) {
+    if (setLastStatus(RegOpenKeyW(_hKey, subkeyName.c_str(), &hKey)) != ERROR_SUCCESS) {
         return false;
     }
     RegCloseKey(hKey);
     return true;
 }
 
-std::list<std::string> RegKey::getSubkeyNames()
+std::list<std::wstring> RegKey::getSubkeyNames()
 {
     if (_hKey == NULL)
-        return std::list<std::string>();
+        return std::list<std::wstring>();
 
-    std::list<std::string> subkeyNames;
-    char subkeyName[MAX_VALUE_NAME];
+    std::list<std::wstring> subkeyNames;
+    wchar_t subkeyName[MAX_VALUE_NAME];
     for (DWORD index = 0; ; index++) {
-        if (setLastStatus(RegEnumKeyA(_hKey, index, subkeyName, MAX_VALUE_NAME)) != ERROR_SUCCESS)
+        if (setLastStatus(RegEnumKeyW(_hKey, index, subkeyName, MAX_VALUE_NAME)) != ERROR_SUCCESS)
             break;
         subkeyNames.push_back(subkeyName);
     }

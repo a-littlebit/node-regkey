@@ -1,6 +1,6 @@
-const RegKey = require('./scripts/RegKey')
-const RegValue = require('./scripts/RegValue')
-const Error = require('./scripts/Error')
+const RegKey = require('./lib/RegKey')
+const RegValue = require('./lib/RegValue')
+const Error = require('./lib/Error')
 
 module.exports = {
   ...RegKey,

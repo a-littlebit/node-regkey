@@ -5,7 +5,7 @@ class RegKeyWrap : public Napi::ObjectWrap<RegKeyWrap>
 {
 public:
   static Napi::Object Init(Napi::Env env, Napi::Object exports);
-  static Napi::Object NewInstance(Napi::Env env, HKEY hKey, const std::string &path);
+  static Napi::Object NewInstance(Napi::Env env, HKEY hKey, const std::wstring &path);
 
   RegKeyWrap(const Napi::CallbackInfo &info);
 
@@ -80,10 +80,10 @@ public:
 private:
   void _throwRegKeyError(const Napi::CallbackInfo &info,
                          const std::string &message,
-                         const std::string &value = "");
+                         const std::wstring &value = L"");
 
   RegKey _regKey;
-  std::string _path;
+  std::wstring _path;
 
   static Napi::FunctionReference constructor;
 };
