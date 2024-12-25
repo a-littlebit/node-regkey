@@ -1,7 +1,4 @@
-const { RegKey, disableRegKeyErrors, RegKeyAccess } = require('..')
-
-// never throw errors in any RegKey function
-disableRegKeyErrors()
+const { RegKey, RegKeyAccess } = require('..')
 
 // create a RegKey object for the HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall key
 const key = new RegKey('HKCU/SOFTWARE/Microsoft/Windows/CurrentVersion/Uninstall', RegKeyAccess.Read)
@@ -19,34 +16,26 @@ for (const subkey of subKeys) {
 }
 
 console.log('Installed apps:\n', apps)
+key.flush()
 
 // create a new subkey
 const myKey = key.createSubkey('MyKey')
 
-// check if the key was created successfully
-if (!myKey) {
-  console.log('Failed to create MyKey')
-  process.exit(1)
-}
-
 // add new values
 myKey.newValue('DisplayName', 'MyKey')
 myKey.newValue('DisplayVersion', '1.0.0')
-myKey.newValue('Publisher', 'vvcoder')
-myKey.newValue('InstallDate', new Date().getDate())
+// myKey.newValue('Publisher', 'vvcoder')
+// myKey.newValue('InstallDate', new Date().getDate())
 // or
 // myKey.setStringValue('DisplayName', 'MyKey')
 // myKey.setStringValue('DisplayVersion', '1.0.0')
-// myKey.setStringValue('Publisher', 'vvcoder')
-// myKey.setDwordValue('InstallDate', new Date().getDate())
+myKey.setStringValue('Publisher', 'vvcoder')
+myKey.setDwordValue('InstallDate', new Date().getDate())
 
+myKey.flush()
 console.log('MyKey:', myKey.values())
 
 // delete the key
-if (myKey.delete()) {
-  console.log('MyKey deleted')
-} else {
-  console.log('Failed to delete MyKey')
-  console.warn('Try delete it manually!')
-  process.exit(1)
-}
+myKey.deleteTree()
+myKey.close()
+key.deleteSubkey(myKey.name)

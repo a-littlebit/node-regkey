@@ -5,7 +5,7 @@
       "cflags!": [ "-fno-exceptions" ],
       "cflags_cc!": [ "-fno-exceptions" ],
       "sources": [
-        "./src/binding.cpp",
+        "./src/Binding.cpp",
         "./src/RegKey.cpp",
         "./src/RegKeyWrap.cpp"
        ],
@@ -17,7 +17,7 @@
         "<!(node -p \"require('node-addon-api').gyp\")"
       ],
       "defines": [ 
-        "NAPI_CPP_EXCEPTIONS"
+        "NODE_ADDON_API_CPP_EXCEPTIONS"
       ]
     }
   ]

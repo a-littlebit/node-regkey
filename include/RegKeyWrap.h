@@ -9,81 +9,54 @@ public:
 
   RegKeyWrap(const Napi::CallbackInfo &info);
 
-  /// Basic Attributes
+  // Properties
 
-  Napi::Value isOpen(const Napi::CallbackInfo &info);
-
-  Napi::Value getPath(const Napi::CallbackInfo &info);
-
-  Napi::Value getHost(const Napi::CallbackInfo &info);
-
-  Napi::Value getName(const Napi::CallbackInfo &info);
-
-  void setName(const Napi::CallbackInfo &info, const Napi::Value &value);
-
-  Napi::Value getLastStatus(const Napi::CallbackInfo &info);
-
-  void setLastStatus(const Napi::CallbackInfo &info, const Napi::Value &value);
-
-  Napi::Value getLastError(const Napi::CallbackInfo &info);
-
-  Napi::Value close(const Napi::CallbackInfo &info);
-
-  Napi::Value copy(const Napi::CallbackInfo &info);
+  Napi::Value IsValid(const Napi::CallbackInfo &info);
+  Napi::Value GetPath(const Napi::CallbackInfo &info);
+  Napi::Value GetHost(const Napi::CallbackInfo &info);
+  Napi::Value GetName(const Napi::CallbackInfo &info);
+  void SetName(const Napi::CallbackInfo &info, const Napi::Value &value);
+  Napi::Value GetLastStatus(const Napi::CallbackInfo &info);
+  Napi::Value IsWritable(const Napi::CallbackInfo &info);
+  Napi::Value Flush(const Napi::CallbackInfo &info);
+  void SetLastStatus(const Napi::CallbackInfo &info, const Napi::Value &value);
+  Napi::Value GetLastError(const Napi::CallbackInfo &info);
+  Napi::Value Close(const Napi::CallbackInfo &info);
+  Napi::Value CopyTree(const Napi::CallbackInfo &info);
 
   // Value Operations
 
-  Napi::Value getBinaryValue(const Napi::CallbackInfo &info);
-
-  Napi::Value getStringValue(const Napi::CallbackInfo &info);
-
-  Napi::Value getMultiStringValue(const Napi::CallbackInfo &info);
-
-  Napi::Value getDwordValue(const Napi::CallbackInfo &info);
-
-  Napi::Value getQwordValue(const Napi::CallbackInfo &info);
-
-  Napi::Value getValueType(const Napi::CallbackInfo &info);
-
-  Napi::Value hasValue(const Napi::CallbackInfo &info);
-
-  Napi::Value getValueNames(const Napi::CallbackInfo &info);
-
-  Napi::Value setBinaryValue(const Napi::CallbackInfo &info);
-
-  Napi::Value setStringValue(const Napi::CallbackInfo &info);
-
-  Napi::Value setMultiStringValue(const Napi::CallbackInfo &info);
-
-  Napi::Value setDwordValue(const Napi::CallbackInfo &info);
-
-  Napi::Value setQwordValue(const Napi::CallbackInfo &info);
-
-  Napi::Value deleteValue(const Napi::CallbackInfo &info);
+  Napi::Value GetBinaryValue(const Napi::CallbackInfo &info);
+  Napi::Value GetStringValue(const Napi::CallbackInfo &info);
+  Napi::Value GetMultiStringValue(const Napi::CallbackInfo &info);
+  Napi::Value GetDwordValue(const Napi::CallbackInfo &info);
+  Napi::Value GetQwordValue(const Napi::CallbackInfo &info);
+  Napi::Value GetValueType(const Napi::CallbackInfo &info);
+  Napi::Value HasValue(const Napi::CallbackInfo &info);
+  Napi::Value GetValueNames(const Napi::CallbackInfo &info);
+  Napi::Value SetBinaryValue(const Napi::CallbackInfo &info);
+  Napi::Value SetStringValue(const Napi::CallbackInfo &info);
+  Napi::Value SetMultiStringValue(const Napi::CallbackInfo &info);
+  Napi::Value SetDwordValue(const Napi::CallbackInfo &info);
+  Napi::Value SetQwordValue(const Napi::CallbackInfo &info);
+  Napi::Value DeleteValue(const Napi::CallbackInfo &info);
 
   // Key Operations
 
-  Napi::Value deleteKey(const Napi::CallbackInfo &info);
-
-  Napi::Value openSubkey(const Napi::CallbackInfo &info);
-
-  Napi::Value createSubkey(const Napi::CallbackInfo &info);
-
-  Napi::Value deleteSubkey(const Napi::CallbackInfo &info);
-
-  Napi::Value getSubkeyNames(const Napi::CallbackInfo &info);
-
-  Napi::Value hasSubkey(const Napi::CallbackInfo &info);
-
-  Napi::Value isWritable(const Napi::CallbackInfo &info);
+  Napi::Value DeleteTree(const Napi::CallbackInfo &info);
+  Napi::Value OpenSubkey(const Napi::CallbackInfo &info);
+  Napi::Value CreateSubkey(const Napi::CallbackInfo &info);
+  Napi::Value DeleteSubkey(const Napi::CallbackInfo &info);
+  Napi::Value GetSubkeyNames(const Napi::CallbackInfo &info);
+  Napi::Value HasSubkey(const Napi::CallbackInfo &info);
 
 private:
-  void _throwRegKeyError(const Napi::CallbackInfo &info,
+  void _ThrowRegKeyError(const Napi::CallbackInfo &info,
                          const std::string &message,
                          const std::wstring &value = L"");
 
+  static Napi::FunctionReference constructor;
+
   RegKey _regKey;
   std::wstring _path;
-
-  static Napi::FunctionReference constructor;
 };

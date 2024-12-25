@@ -1,126 +1,178 @@
 #include <Windows.h>
 #include <string>
-#include <list>
 #include <vector>
+#include <memory>
 
+typedef wchar_t Char;
+typedef std::wstring String;
 typedef unsigned long long QWORD;
 typedef std::vector<byte> ByteArray;
 
-struct ValueInfo {
-  std::wstring name;
-  DWORD type;
-  ByteArray data;
+#define STR(x) L##x
+#define STRLEN(x) wcslen(x)
+#define STRCOPY(x, x_size, y) wcscpy_s(x, x_size, y)
+
+struct RegValue
+{
+    String name;
+    DWORD type;
+    ByteArray data;
 };
 
 class RegKey
 {
 public:
+    RegKey(HKEY baseKey = NULL,
+           const String &subKeyName = STR(""),
+           const String &hostname = STR(""),
+           REGSAM access = 0);
 
-  // 0 specifies use RegCreateKeyA
-  RegKey(HKEY baseKey = NULL,
-        const std::wstring &subKeyName = L"",
-        const std::wstring &hostname = L"",
-        REGSAM access = 0);
+    ~RegKey()
+    {
+        Close();
+    }
 
-  ~RegKey() {
-    close();
-  }
+    RegKey(RegKey &&r)
+    {
+        _hKey = r.Detach();
+        _lastStatus = r._lastStatus;
+    }
 
-  RegKey(const RegKey &) = delete;
-  RegKey &operator=(const RegKey &) = delete;
+    RegKey &operator=(RegKey &&r)
+    {
+        _hKey = r.Detach();
+        _lastStatus = r._lastStatus;
+        return *this;
+    }
 
-  // old handle will be closed
-  HKEY open(HKEY baseKey, const std::wstring &subKeyName, REGSAM access = 0);
+    RegKey(const RegKey &) = delete;
 
-  HKEY create(HKEY baseKey, const std::wstring &subKeyName, REGSAM access = 0);
+    RegKey &operator=(const RegKey &) = delete;
 
-  HKEY connect(HKEY baseKey, const std::wstring &hostname);
+    HKEY Open(HKEY baseKey,
+              const String &subKeyName,
+              REGSAM access = 0);
 
-  HKEY reset(HKEY baseKey, const std::wstring &subKeyName, const std::wstring &hostname, REGSAM access = 0);
+    HKEY Create(HKEY baseKey,
+                const String &subKeyName,
+                REGSAM access = 0);
 
-  HKEY attach(HKEY hKey);
+    HKEY Connect(const String &hostname,
+                 HKEY baseKey);
 
-  HKEY detach() {
-    return attach(NULL);
-  }
+    HKEY ConnectAndCreate(HKEY baseKey,
+                          const String &subKeyName,
+                          const String &hostname,
+                          REGSAM access = 0);
 
-  bool isOpen() const {
-    return _hKey != NULL;
-  }
+    HKEY Attach(HKEY hKey);
 
-  void close();
+    HKEY Detach()
+    {
+        return Attach(NULL);
+    }
 
-  HKEY getHandle() const {
-    return _hKey;
-  }
+    bool IsValid() const
+    {
+        return _hKey != NULL;
+    }
 
-  LSTATUS getLastStatus() const {
-    return _lastStatus;
-  }
+    bool Close();
 
-  LSTATUS setLastStatus(LSTATUS status) {
-    return _lastStatus = status;
-  }
+    HKEY GetHandle() const
+    {
+        return _hKey;
+    }
 
-  bool copyTree(HKEY hSrc);
+    LSTATUS GetLastStatus() const
+    {
+        return _lastStatus;
+    }
 
-  bool rename(const std::wstring &newName);
+    LSTATUS SetLastStatus(LSTATUS status)
+    {
+        return _lastStatus = status;
+    }
 
-  ValueInfo getValue(const std::wstring &valueName, bool *success = nullptr);
+    bool IsWritable();
 
-  // returns -1 if failed
-  int getValueSize(const std::wstring &valueName);
+    bool Flush();
 
-  ByteArray getBinaryValue(const std::wstring &valueName, bool *success = nullptr);
+    bool CopyTree(HKEY hSrc);
 
-  std::wstring getStringValue(const std::wstring &valueName, bool *success = nullptr);
+    bool Rename(const String &newName);
 
-  DWORD getDwordValue(const std::wstring &valueName, bool *success = nullptr);
+    HKEY OpenSubkey(const String &subkeyName,
+                    REGSAM access = 0);
 
-  QWORD getQwordValue(const std::wstring &valueName, bool *success = nullptr);
+    HKEY CreateSubkey(const String &subkeyName,
+                      REGSAM access = 0);
 
-  std::list<std::wstring> getMultiStringValue(const std::wstring &valueName, bool *success = nullptr);
+    bool DeleteTree();
+    bool DeleteTree(const String &subkeyName);
 
-  std::list<ValueInfo> getValues();
+    bool DeleteSubkey(const String &subkeyName);
 
-  std::list<std::wstring> getValueNames();
+    bool HasSubkey(const String &subkeyName);
 
-  bool putValue(const ValueInfo &value);
+    std::vector<String> GetSubkeyNames();
 
-  bool setStringValue(const std::wstring &valueName, const std::wstring &value, DWORD type = REG_SZ);
+    RegValue GetValue(const String &valueName,
+                      bool *success = nullptr);
 
-  bool setBinaryValue(const std::wstring &valueName, const void* value, size_t size, DWORD type = REG_BINARY);
+    DWORD GetValueType(const String &valueName);
 
-  bool setDwordValue(const std::wstring &valueName, DWORD value, DWORD type = REG_DWORD);
+    DWORD GetValueSize(const String &valueName);
 
-  bool setQwordValue(const std::wstring &valueName, QWORD value, DWORD type = REG_QWORD);
+    ByteArray GetBinaryValue(const String &valueName,
+                             bool *success = nullptr);
 
-  bool setMultiStringValue(const std::wstring &valueName, const std::list<std::wstring> &value, DWORD type = REG_MULTI_SZ);
+    String GetStringValue(const String &valueName,
+                          bool *success = nullptr);
 
-  int putValues(const std::list<ValueInfo> &values);
+    DWORD GetDwordValue(const String &valueName,
+                        bool *success = nullptr);
 
-  // returns 0 if failed
-  DWORD getValueType(const std::wstring &valueName);
+    QWORD GetQwordValue(const String &valueName,
+                        bool *success = nullptr);
 
-  bool deleteKey();
+    std::vector<String> GetMultiStringValue(const String &valueName,
+                                            bool *success = nullptr);
 
-  HKEY openSubkey(const std::wstring &subkeyName, REGSAM access = 0);
+    std::vector<RegValue> GetValues();
 
-  HKEY createSubkey(const std::wstring &subkeyName, REGSAM access = 0);
+    std::vector<String> GetValueNames();
 
-  bool deleteSubkey(const std::wstring &subkeyName);
+    bool HasValue(const String &valueName);
 
-  bool hasValue(const std::wstring &valueName);
+    bool PutValue(const RegValue &value);
 
-  bool isWritable();
+    size_t PutValues(const std::vector<RegValue> &values);
 
-  bool deleteValue(const std::wstring &valueName);
+    bool SetStringValue(const String &valueName,
+                        const String &value,
+                        DWORD type = REG_SZ);
 
-  bool hasSubkey(const std::wstring &subkeyName);
+    bool SetBinaryValue(const String &valueName,
+                        const void *value,
+                        size_t size,
+                        DWORD type = REG_BINARY);
 
-  std::list<std::wstring> getSubkeyNames();
+    bool SetDwordValue(const String &valueName,
+                       DWORD value,
+                       DWORD type = REG_DWORD);
+
+    bool SetQwordValue(const String &valueName,
+                       QWORD value,
+                       DWORD type = REG_QWORD);
+
+    bool SetMultiStringValue(const String &valueName,
+                             const std::vector<String> &values,
+                             DWORD type = REG_MULTI_SZ);
+
+    bool DeleteValue(const String &valueName);
 
 private:
-  HKEY _hKey;
-  LSTATUS _lastStatus;
+    HKEY _hKey;
+    LSTATUS _lastStatus;
 };

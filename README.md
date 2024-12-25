@@ -2,8 +2,6 @@
 
 ## Introduction
 
-使用原生 Windows API 为 NodeJS 提供 Windows 注册表操作
-
 Provide Windows registry key access for Node.js using the native Windows API.
 
 ## Install
@@ -77,12 +75,8 @@ You can also call the RegKey constructor to create a registry key
 
 ```
 const { RegKey, RegKeyAccess } = require('regkey')
-// specify full path
-const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp')
-// specify path parts
-const key = new RegKey('HKEY_CURRENT_USER', 'Software', 'MyApp')
-// specify a remote host
-const key = new RegKey('//hostname', 'HKCU/Software/MyApp')
+
+const key = new RegKey('HKEY_LOCAL_MACHINE/Software/MyApp')
 // specify a remote host and access rights
 const key = new RegKey('//hostname/HKCU/Software/MyApp', RegKeyAccess.Read)
 ```
@@ -183,8 +177,7 @@ If you do not do so, the type is determined by typeof 'myValData'
 #### Delete the key
 
 ```
-if (!myKey.delete()) {
-  console.log('Delete HKCU/Software/myKey Failed!')
-  console.warn('Try delete it manually!')
-}
+myKey.deleteTree() // clear values and subkeys
+myKey.close() // close the handle (optional, key won't be actually deleted before closed)
+parentKey.deleteSubkey(myKey.name) // delete the key
 ```

@@ -6,7 +6,7 @@
             "request": "launch",
             "name": "Debug Test JavaScript",
             "console": "integratedTerminal",
-            "program": "${workspaceFolder}/tests/scripts/test.js"
+            "program": "${workspaceFolder}/tests/test.js"
         },
         {
             "name": "Attach Native Process",
@@ -19,7 +19,7 @@
             "type": "cppvsdbg",
             "request": "launch",
             "program": "node",
-            "args": ["${workspaceFolder}/tests/scripts/test.js"],
+            "args": ["${workspaceFolder}/tests/test.js"],
             "cwd": "${workspaceFolder}"
         }
     ]

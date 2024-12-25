@@ -13,27 +13,41 @@
     "type": "git",
     "url": "git://github.com/a-littlebit/node-regkey.git"
   },
-  "main": "index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
   "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "prebuilds",
+    "index.d.ts",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
-    "install": "node-gyp-build",
-    "test": "node --trace-warnings ./tests/scripts/test.js",
-    "build:debug": "cmake-js build --debug",
-    "build:release": "cmake-js build --release",
-    "clean": "cmake-js clean",
-    "prebuild:ia32": "prebuildify --strip --napi --platform=win32 --arch=ia32",
-    "prebuild:x64": "prebuildify --strip --napi --platform=win32 --arch=x64",
-    "prebuild:arm64": "prebuildify --strip --napi --platform=win32 --arch=arm64",
+    "test": "node --trace-warnings ./tests/test.js",
+    "clean": "node-gyp clean",
+    "build:js": "rollup -c",
+    "build:debug": "node-gyp configure build --debug",
+    "prebuild:ia32": "prebuildify --napi --strip --platform=win32 --arch=ia32",
+    "prebuild:x64": "prebuildify --napi --strip --platform=win32 --arch=x64",
+    "prebuild:arm64": "prebuildify --napi --strip --platform=win32 --arch=arm64",
     "prebuild": "npm run prebuild:ia32 && npm run prebuild:x64 && npm run prebuild:arm64",
-    "prebuild:clean": "rmdir /s /q prebuilds"
+    "pre-publish": "npm run build:js && npm run prebuild"
   },
   "dependencies": {
-    "node-addon-api": "^8.0.0",
-    "node-gyp-build": "^4.8.1"
+    "node-gyp-build": "^4.8.4"
   },
-  "cmake-js": {
-    "runtime": "node",
-    "runtimeVersion": "12.16.3",
-    "arch": "x64"
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "node-addon-api": "^8.0.0",
+    "rollup": "^4.29.1"
   }
 }
