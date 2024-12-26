@@ -95,9 +95,9 @@ if (ms.valid) {
 const values = myKey.values()
 for (const value of values) {
   console.log('name: ', value.name)
-  console.log('type: ', value.type)
+  console.log('type: ', value.type)
   console.log('value: ', value.value)
-  console.log('data: ', value.data, '\n')
+  console.log('data: ', value.data, '\n')
 }
 ```
 
@@ -126,9 +126,9 @@ The type of `value` and return value of `get` function is hard to predict. If yo
 // directly set
 myKey.setStringValue('myValName', 'myValData')
 // through RegValue object
-myKey.value('myValName').set('myValName', 'myValData')
+myKey.value('myValName').set('myValData')
 // specify the type
-myKey.value('myValName').set('myValName', 'myValData', RegValueType.REG_SZ)
+myKey.value('myValName').set('myValData', RegValueType.REG_SZ)
 ```
 
 #### Delete the key
