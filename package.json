@@ -1,7 +1,7 @@
 {
   "name": "regkey",
-  "version": "2.2.3",
-  "description": "Provide Windows registry key access for Node.js using the native Windows API.",
+  "version": "2.3.0",
+  "description": "Provide fast access to Windows registry for Node.js using native Windows API.",
   "keywords": [
     "registry",
     "Windows",
@@ -23,7 +23,8 @@
     }
   },
   "files": [
-    "dist",
+    "dist/index.cjs",
+    "dist/index.mjs",
     "prebuilds",
     "index.d.ts",
     "LICENSE",

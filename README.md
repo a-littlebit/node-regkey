@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Provide Windows registry key access for Node.js using the native Windows API.
+Provide fast access to Windows registry for Node.js using native Windows API.
 
 ## Install
 
@@ -10,84 +10,55 @@ Provide Windows registry key access for Node.js using the native Windows API.
 npm install regkey
 ```
 
-## Example
+## Usage
 
-#### Import base keys
+#### Import a base key
 
 ```
 const { hkcu } = require('regkey')
 ```
 
-Currently supported base keys: 
+#### Open an existing key
 
 ```
-export const hkcr: RegKey; // HKEY_CLASS_ROOT
-export const hkcu: RegKey; // HKEY_CURRENT_USER
-export const hklm: RegKey; // HKEY_LOCAL_MACHINE
-export const hku:  RegKey; // HKEY_USERS
-export const hkcc: RegKey; // HKEY_CURRENT_CONFIG
-export const hkpd: RegKey; // HKEY_PERFORMANCE_DATA
-export const hkpt: RegKey; // HKEY_PERFORMANCE_TEXT
-export const hkpn: RegKey; // HKEY_PERFORMALCE_NLSTEXT
-```
-
-#### Opening an existing key
-
-```
-const ms = hkcu.openSubkey('Software/Microsoft')
-if (!ms) {
-  // Failed
-  console.log('Opening HKCU/Software/Microsoft Failed!')
-  process.exit(1)
+try {
+  const ms = hkcu.openSubkey('Software/Microsoft')
+  ... // do something with ms
+} catch (e) {
+  if (e instanceof RegKeyError) {
+    console.error('Error operating registry: ', e.lastError)
+  } else {
+    console.error(e.message)
+  }
 }
-console.log(`Opening ${ ms.path } success`)
 ```
 
-The function 'openSubkey' returns null if opening failed
-
-#### Getting names of the subkeys
-
-```
-console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
-```
-
-The result is an array of string containing names of all the subkeys
-
-#### Closing a key
-
-The key will be automatically closed when the JavaScript object is  garbage coll
-
-You can also close it manually
-
-```
-ms.close()
-```
-
-#### Creating a new key
+#### Create a new key
 
 ```
 const myKey = hkcu.createSubkey('Software/myKey')
 ```
 
-If the key already exists, it will be directly opened
+If the key already exists, it will be directly opened.
 
-You can also call the RegKey constructor to create a registry key
+You can also call the `RegKey` constructor to create a registry key.
 
 ```
 const { RegKey, RegKeyAccess } = require('regkey')
 
 const key = new RegKey('HKEY_LOCAL_MACHINE/Software/MyApp')
 // specify a remote host and access rights
-const key = new RegKey('//hostname/HKCU/Software/MyApp', RegKeyAccess.Read)
+const key = new RegKey('//MyPC/HKCU/Software/MyApp', RegKeyAccess.Read)
 ```
 
-The RegAccessKey is an enum that specifies the access rights of the key
+#### Work with access rights
 
-You can find the definition of the enum in index.d.ts
+The `RegAccessKey` is an enum that specifies the access rights of the key.
 
-To specify multiple access rights, use bitwise OR to combine them
+You can find the definition of the enum in `index.d.ts`.
 
-or put them in an array
+To specify multiple access rights, use `|` to combine them
+or put them into an array.
 
 ```
 const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp', RegKeyAccess.Read | RegKeyAccess.ia32)
@@ -95,9 +66,30 @@ const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp', RegKeyAccess.Read | R
 const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp', [RegKeyAccess.Read, RegKeyAccess.ia32])
 ```
 
-For more details, see the [MSDN](https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry-key-security-and-access-rights)
+#### Get the name of the subkeys
 
-#### Reading values
+```
+console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
+```
+
+#### Close a key
+
+When a `RegKey` object is released, it automatically closes the attached handle.
+You can also call `close()` to manually release the handle.
+
+```
+ms.close()
+```
+
+Use `RegKey.valid` to check if the key hasn't been closed yet.
+
+```
+if (ms.valid) {
+  ... // do something with ms
+}
+```
+
+#### Read values
 
 ```
 const values = myKey.values()
@@ -109,57 +101,24 @@ for (const value of values) {
 }
 ```
 
-The value property reads the registry item according to its value type, while data reads it as a buffer
+The `value` property reads the registry item according to its value type, while `data` property reads it as a buffer.
 
-Assignments to both of them have the same effect
+Assignments to both of them have the same effect.
 
-You can also call getStringValue to directly get the value as a string
+You can also call `getStringValue` to directly get the value as a string.
 
 ```
 const value = myKey.getStringValue('some-value')
 console.log(value)
 ```
 
-Or you can use 'get' function to specify the result type you expect
+Or you can use `get` function to specify the result type you expect.
 
 ```
 const value = myKey.value('some-value').get(String)
 ```
 
-The type could be one of String, Buffer, Number, Array(for REG_MULTI_SZ)
-
-If resultType was not specified, it will be determined by the type of the value
-
-#### Handling an error
-
-When necessary, a RegKey function may throw a RegKeyError:
-
-```
-const errorVal = myKey.getStringValue('A-nonexistent-value')
-```
-
-You may get an error like the following
-
-```
-RegKeyError: Failed to get value
-    at Object.<anonymous> (path\to\your\source\index.js:4:21)
-    at ... {
-  key: RegKey {...},
-  value: 'A-nonexistent-value',
-  lastError: 'The system cannot find the file specified.\r\n'
-}
-```
-
-The 'lastError' field is the value returned by RegKey.getLastError()
-
-It is a string containing the error message formatted by the Windows API from the error code of last API call
-
-If you don't want to receive a RegKeyError even if a function failed, use disableRegKeyErrors
-
-```
-const { disableRegKeyErrors } = require('regkey')
-disableRegKeyErrors()
-```
+The type of `value` and return value of `get` function is hard to predict. If you are sure about the type you want, use `RegKey.getXxxValue` instead. They are faster and more predictable.
 
 #### Setting values
 
@@ -168,11 +127,9 @@ disableRegKeyErrors()
 myKey.setStringValue('myValName', 'myValData')
 // through RegValue object
 myKey.value('myValName').set('myValName', 'myValData')
+// specify the type
+myKey.value('myValName').set('myValName', 'myValData', RegValueType.REG_SZ)
 ```
-
-You can specify a RegValueType after 'myValData'
-
-If you do not do so, the type is determined by typeof 'myValData'
 
 #### Delete the key
 

@@ -185,15 +185,6 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
     constructor.SuppressDestruct();
     exports.Set("RegKey", cons);
 
-    exports.Set("hkcr", NewInstance(env, HKEY_CLASSES_ROOT,        STR("HKEY_CLASS_ROOT")));
-    exports.Set("hkcu", NewInstance(env, HKEY_CURRENT_USER,        STR("HKEY_CURRENT_USER")));
-    exports.Set("hklm", NewInstance(env, HKEY_LOCAL_MACHINE,       STR("HKEY_LOCAL_MACHINE")));
-    exports.Set("hku" , NewInstance(env, HKEY_USERS,               STR("HKEY_USERS")));
-    exports.Set("hkcc", NewInstance(env, HKEY_CURRENT_CONFIG,      STR("HKEY_CURRENT_CONFIG")));
-    exports.Set("hkpd", NewInstance(env, HKEY_PERFORMANCE_DATA,    STR("HKEY_PERFORMANCE_DATA")));
-    exports.Set("hkpt", NewInstance(env, HKEY_PERFORMANCE_TEXT,    STR("HKEY_PERFORMANCE_TEXT")));
-    exports.Set("hkpn", NewInstance(env, HKEY_PERFORMANCE_NLSTEXT, STR("HKEY_PERFORMANCE_NLSTEXT")));
-
     return exports;
 }
 

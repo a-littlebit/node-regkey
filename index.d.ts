@@ -1,6 +1,7 @@
+import { Buffer } from 'buffer'
+
 /**
  * Registry key access rights
- * - See https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry-key-security-and-access-rights
  */
 export declare enum RegKeyAccess {
   Default = 0,
