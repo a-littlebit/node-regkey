@@ -1,6 +1,6 @@
 {
   "name": "regkey",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Provide fast access to Windows registry for Node.js using native Windows API.",
   "keywords": [
     "registry",
@@ -32,6 +32,7 @@
     "README.md"
   ],
   "scripts": {
+    "install": "node -p \"'' // All supported runtimes have prebuilt binaries, no need to rebuild.\"",
     "test": "node --trace-warnings ./tests/test.js",
     "clean": "node-gyp clean",
     "build:js": "rollup -c",
