@@ -138,35 +138,35 @@ bool RegKey::Rename(const String &newName)
     return SetLastStatus(RegRenameKey(_hKey, NULL, newName.c_str())) == ERROR_SUCCESS;
 }
 
-HKEY RegKey::OpenSubkey(const String &subkeyName, REGSAM access)
+HKEY RegKey::OpenSubKey(const String &subKeyName, REGSAM access)
 {
     HKEY hKey = NULL;
     if (access)
     {
-        if (SetLastStatus(RegOpenKeyExW(_hKey, subkeyName.c_str(), 0, access, &hKey)) == ERROR_SUCCESS)
+        if (SetLastStatus(RegOpenKeyExW(_hKey, subKeyName.c_str(), 0, access, &hKey)) == ERROR_SUCCESS)
             return hKey;
     }
     else
     {
-        if (SetLastStatus(RegOpenKeyW(_hKey, subkeyName.c_str(), &hKey)) == ERROR_SUCCESS)
+        if (SetLastStatus(RegOpenKeyW(_hKey, subKeyName.c_str(), &hKey)) == ERROR_SUCCESS)
             return hKey;
     }
 
     return NULL;
 }
 
-HKEY RegKey::CreateSubkey(const String &subkeyName, REGSAM access)
+HKEY RegKey::CreateSubKey(const String &subKeyName, REGSAM access)
 {
     HKEY hKey = NULL;
     if (access)
     {
-        if (SetLastStatus(RegCreateKeyExW(_hKey, subkeyName.c_str(), 0, NULL,
+        if (SetLastStatus(RegCreateKeyExW(_hKey, subKeyName.c_str(), 0, NULL,
                                           REG_OPTION_NON_VOLATILE, access, NULL, &hKey, NULL)) == ERROR_SUCCESS)
             return hKey;
     }
     else
     {
-        if (SetLastStatus(RegCreateKeyW(_hKey, subkeyName.c_str(), &hKey)) == ERROR_SUCCESS)
+        if (SetLastStatus(RegCreateKeyW(_hKey, subKeyName.c_str(), &hKey)) == ERROR_SUCCESS)
             return hKey;
     }
 
@@ -178,20 +178,20 @@ bool RegKey::DeleteTree()
     return SetLastStatus(RegDeleteTreeW(_hKey, NULL)) == ERROR_SUCCESS;
 }
 
-bool RegKey::DeleteTree(const String &subkeyName)
+bool RegKey::DeleteTree(const String &subKeyName)
 {
-    return SetLastStatus(RegDeleteKeyW(_hKey, subkeyName.c_str())) == ERROR_SUCCESS;
+    return SetLastStatus(RegDeleteKeyW(_hKey, subKeyName.c_str())) == ERROR_SUCCESS;
 }
 
-bool RegKey::DeleteSubkey(const String &subkeyName)
+bool RegKey::DeleteSubKey(const String &subKeyName)
 {
-    return SetLastStatus(RegDeleteTreeW(_hKey, subkeyName.c_str())) == ERROR_SUCCESS;
+    return SetLastStatus(RegDeleteTreeW(_hKey, subKeyName.c_str())) == ERROR_SUCCESS;
 }
 
-bool RegKey::HasSubkey(const String &subkeyName)
+bool RegKey::HasSubKey(const String &subKeyName)
 {
     HKEY hKey = NULL;
-    if (SetLastStatus(RegOpenKeyW(_hKey, subkeyName.c_str(), &hKey)) != ERROR_SUCCESS)
+    if (SetLastStatus(RegOpenKeyW(_hKey, subKeyName.c_str(), &hKey)) != ERROR_SUCCESS)
     {
         return false;
     }
@@ -199,21 +199,21 @@ bool RegKey::HasSubkey(const String &subkeyName)
     return true;
 }
 
-std::vector<String> RegKey::GetSubkeyNames()
+std::vector<String> RegKey::GetSubKeyNames()
 {
-    std::vector<String> subkeyNames;
+    std::vector<String> subKeyNames;
     DWORD maxKeyLen = 0;
     if (SetLastStatus(RegQueryInfoKeyW(_hKey, NULL, NULL, NULL, NULL, &maxKeyLen, NULL, NULL, NULL, NULL, NULL, NULL)) != ERROR_SUCCESS)
-        return subkeyNames;
+        return subKeyNames;
     maxKeyLen++;
     std::unique_ptr<wchar_t[]> subkeyName(new wchar_t[maxKeyLen]);
     for (DWORD index = 0;; index++)
     {
         if (SetLastStatus(RegEnumKeyW(_hKey, index, subkeyName.get(), maxKeyLen)) != ERROR_SUCCESS)
             break;
-        subkeyNames.push_back(subkeyName.get());
+        subKeyNames.push_back(subkeyName.get());
     }
-    return subkeyNames;
+    return subKeyNames;
 }
 
 RegValue RegKey::GetValue(const String &valueName, bool *success)

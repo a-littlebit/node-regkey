@@ -22,7 +22,7 @@ const { hkcu } = require('regkey')
 
 ```
 try {
-  const ms = hkcu.openSubkey('Software/Microsoft')
+  const ms = hkcu.openSubKey('Software/Microsoft')
   ... // do something with ms
 } catch (e) {
   if (e instanceof RegKeyError) {
@@ -36,7 +36,7 @@ try {
 #### Create a new key
 
 ```
-const myKey = hkcu.createSubkey('Software/myKey')
+const myKey = hkcu.createSubKey('Software/myKey')
 ```
 
 If the key already exists, it will be directly opened.
@@ -69,7 +69,7 @@ const key = new RegKey('HKEY_CURRENT_USER/Software/MyApp', [RegKeyAccess.Read, R
 #### Get the name of the subkeys
 
 ```
-console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubkeyNames())
+console.log('Subkeys of HKCU/Software/Microsoft:\n', ms.getSubKeyNames())
 ```
 
 #### Close a key
@@ -136,5 +136,5 @@ myKey.value('myValName').set('myValName', 'myValData', RegValueType.REG_SZ)
 ```
 myKey.deleteTree() // clear values and subkeys
 myKey.close() // close the handle (optional, key won't be actually deleted before closed)
-parentKey.deleteSubkey(myKey.name) // delete the key
+parentKey.deleteSubKey(myKey.name) // delete the key
 ```

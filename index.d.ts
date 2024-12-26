@@ -69,7 +69,6 @@ export declare interface RegKeyOptions {
    */
   host?: string
 
-
   /**
    * The base key of the registry key.
    * 
@@ -85,7 +84,7 @@ export declare interface RegKeyOptions {
    * @example
    * 'Software/MyApp'
    */
-  subkey?: string
+  subKey?: string
 
   /**
    * The desired access rights.
@@ -159,7 +158,6 @@ export declare class RegKey {
   /**
    * Get the last error message
    * 
-   * 
    * @returns An error message formatted by the Windows API from the error code of last API call
    */
   getLastError(): string
@@ -181,10 +179,10 @@ export declare class RegKey {
   /**
    * Delete all subkeys and values of the specified key.
    * 
-   * @param subkey - The specified subkey. Ommit it to specify the current key.
+   * @param subKey - The specified subkey. Ommit it to specify the current key.
    * @returns True if deleted successfully.
    */
-  deleteTree(subkey?: string): boolean
+  deleteTree(subKey?: string): boolean
 
   /**
    * Open the subkey of the given name.
@@ -194,7 +192,7 @@ export declare class RegKey {
    * @param access - The desired access rights.
    * @returns A RegKey object related to the subkey.
    */
-  openSubkey(name: string, access?: RegKeyAccess | RegKeyAccess[]): RegKey | null
+  openSubKey(name: string, access?: RegKeyAccess | RegKeyAccess[]): RegKey | null
 
   /**
    * Create the subkey of the given name.
@@ -204,7 +202,7 @@ export declare class RegKey {
    * @param access - The desired access rights
    * @returns A RegKey object related to the subkey.
    */
-  createSubkey(name: string, access?: RegKeyAccess | RegKeyAccess[]): RegKey | null
+  createSubKey(name: string, access?: RegKeyAccess | RegKeyAccess[]): RegKey | null
 
   /**
    * Delete the subkey of the given name.
@@ -212,14 +210,14 @@ export declare class RegKey {
    * @param name - The name of the subkey.
    * @returns True if the subkey is deleted successfully.
    */
-  deleteSubkey(name: string): boolean
+  deleteSubKey(name: string): boolean
 
   /**
    * Get all subkey names in the key.
    * 
    * @returns An array containing all subkey names.
    */
-  getSubkeyNames(): string[]
+  getSubKeyNames(): string[]
 
   /**
    * Check if the key has the given subkey.
@@ -227,7 +225,7 @@ export declare class RegKey {
    * @param name - The name of the subkey.
    * @returns True if the key has the given subkey.
    */
-  hasSubkey(name: string): boolean
+  hasSubKey(name: string): boolean
 
   /**
    * Get a RegValue object with the given name.

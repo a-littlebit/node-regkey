@@ -158,11 +158,11 @@ Napi::Object RegKeyWrap::Init(Napi::Env env, Napi::Object exports)
         InstanceMethod("close", &RegKeyWrap::Close),
 
         InstanceMethod("deleteTree", &RegKeyWrap::DeleteTree),
-        InstanceMethod("openSubkey", &RegKeyWrap::OpenSubkey),
-        InstanceMethod("createSubkey", &RegKeyWrap::CreateSubkey),
-        InstanceMethod("deleteSubkey", &RegKeyWrap::DeleteSubkey),
-        InstanceMethod("getSubkeyNames", &RegKeyWrap::GetSubkeyNames),
-        InstanceMethod("hasSubkey", &RegKeyWrap::HasSubkey),
+        InstanceMethod("openSubKey", &RegKeyWrap::OpenSubKey),
+        InstanceMethod("createSubKey", &RegKeyWrap::CreateSubKey),
+        InstanceMethod("deleteSubKey", &RegKeyWrap::DeleteSubKey),
+        InstanceMethod("getSubKeyNames", &RegKeyWrap::GetSubKeyNames),
+        InstanceMethod("hasSubKey", &RegKeyWrap::HasSubKey),
 
         InstanceMethod("getBinaryValue", &RegKeyWrap::GetBinaryValue),
         InstanceMethod("getStringValue", &RegKeyWrap::GetStringValue),
@@ -200,7 +200,7 @@ Napi::Object RegKeyWrap::NewInstance(Napi::Env env, HKEY hKey, const String &pat
 
 RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKeyWrap>(info)
 {
-    String hostname, baseKeyName, subkeyName;
+    String hostname, baseKeyName, subKeyName;
     REGSAM access = 0;
     if (info[0].IsExternal())
     {
@@ -237,7 +237,7 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
         if (slashPos != std::string::npos)
         {
             baseKeyName = path.substr(0, slashPos);
-            subkeyName = path.substr(slashPos + 1);
+            subKeyName = path.substr(slashPos + 1);
         }
         else
             baseKeyName = path;
@@ -256,9 +256,9 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
     {
         Napi::Object options = info[0].As<Napi::Object>();
 
-        Napi::Value hostValue = options.Get("hostname");
+        Napi::Value hostValue = options.Get("host");
         Napi::Value baseKeyValue = options.Get("baseKey");
-        Napi::Value subkeyValue = options.Get("subkey");
+        Napi::Value subkeyValue = options.Get("subKey");
         Napi::Value accessValue = options.Get("access");
 
         if (!baseKeyValue.IsString())
@@ -268,7 +268,7 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
         if (hostValue.IsString())
             hostname = ConvertToStdString(hostValue.As<Napi::String>());
         if (subkeyValue.IsString())
-            subkeyName = ReplaceString(ConvertToStdString(subkeyValue.As<Napi::String>()), STR("/"), STR("\\"));
+            subKeyName = ReplaceString(ConvertToStdString(subkeyValue.As<Napi::String>()), STR("/"), STR("\\"));
         if (accessValue.IsNumber())
             access = accessValue.As<Napi::Number>().Uint32Value();
         else if (accessValue.IsArray())
@@ -286,8 +286,8 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
     else
         _path = baseKeyName;
 
-    if (!subkeyName.empty())
-        _path += STR('\\') + subkeyName;
+    if (!subKeyName.empty())
+        _path += STR('\\') + subKeyName;
 
     HKEY baseKey = ParseBaseKey(baseKeyName);
     if (baseKey == NULL)
@@ -295,7 +295,7 @@ RegKeyWrap::RegKeyWrap(const Napi::CallbackInfo &info) : Napi::ObjectWrap<RegKey
         _ThrowRegKeyError(info, "Invalid base key name.");
         return;
     }
-    if (_regKey.ConnectAndCreate(baseKey, subkeyName, hostname, access) == NULL)
+    if (_regKey.ConnectAndCreate(baseKey, subKeyName, hostname, access) == NULL)
     {
         _ThrowRegKeyError(info, "Failed to create registry key.");
     }
@@ -409,7 +409,7 @@ Napi::Value RegKeyWrap::DeleteTree(const Napi::CallbackInfo &info)
     return Napi::Boolean::New(info.Env(), res);
 }
 
-Napi::Value RegKeyWrap::OpenSubkey(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::OpenSubKey(const Napi::CallbackInfo &info)
 {
     if (!info[0].IsString())
         throw Napi::TypeError::New(info.Env(), "Subkey name expected.");
@@ -431,7 +431,7 @@ Napi::Value RegKeyWrap::OpenSubkey(const Napi::CallbackInfo &info)
         }
     }
 
-    hKey = _regKey.OpenSubkey(keyName, access);
+    hKey = _regKey.OpenSubKey(keyName, access);
     if (hKey == NULL)
     {
         _ThrowRegKeyError(info, "Failed to open subkey.");
@@ -441,7 +441,7 @@ Napi::Value RegKeyWrap::OpenSubkey(const Napi::CallbackInfo &info)
     return RegKeyWrap::NewInstance(info.Env(), hKey, _path + STR('\\') + keyName);
 }
 
-Napi::Value RegKeyWrap::CreateSubkey(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::CreateSubKey(const Napi::CallbackInfo &info)
 {
     if (!info[0].IsString())
         throw Napi::TypeError::New(info.Env(), "Subkey name expected.");
@@ -463,7 +463,7 @@ Napi::Value RegKeyWrap::CreateSubkey(const Napi::CallbackInfo &info)
         }
     }
 
-    hKey = _regKey.CreateSubkey(keyName, access);
+    hKey = _regKey.CreateSubKey(keyName, access);
     if (hKey == NULL)
     {
         _ThrowRegKeyError(info, "Failed to create subkey.");
@@ -473,12 +473,12 @@ Napi::Value RegKeyWrap::CreateSubkey(const Napi::CallbackInfo &info)
     return RegKeyWrap::NewInstance(info.Env(), hKey, _path + STR('\\') + keyName);
 }
 
-Napi::Value RegKeyWrap::DeleteSubkey(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::DeleteSubKey(const Napi::CallbackInfo &info)
 {
     if (info[0].IsString())
     {
         String keyName = ConvertToStdString(info[0].As<Napi::String>());
-        bool res = _regKey.DeleteSubkey(keyName);
+        bool res = _regKey.DeleteSubKey(keyName);
         if (!res)
             _ThrowRegKeyError(info, "Failed to delete subkey.");
         return Napi::Boolean::New(info.Env(), res);
@@ -487,10 +487,10 @@ Napi::Value RegKeyWrap::DeleteSubkey(const Napi::CallbackInfo &info)
         throw Napi::TypeError::New(info.Env(), "Subkey name expected.");
 }
 
-Napi::Value RegKeyWrap::GetSubkeyNames(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::GetSubKeyNames(const Napi::CallbackInfo &info)
 {
     Napi::Array results = Napi::Array::New(info.Env());
-    auto subkeys = _regKey.GetSubkeyNames();
+    auto subkeys = _regKey.GetSubKeyNames();
     int i = 0;
     for (auto it = subkeys.begin(); it != subkeys.end(); it++)
         results.Set(i++, ConvertToNapiString(info.Env(), *it));
@@ -498,12 +498,12 @@ Napi::Value RegKeyWrap::GetSubkeyNames(const Napi::CallbackInfo &info)
     return results;
 }
 
-Napi::Value RegKeyWrap::HasSubkey(const Napi::CallbackInfo &info)
+Napi::Value RegKeyWrap::HasSubKey(const Napi::CallbackInfo &info)
 {
     if (info[0].IsString())
     {
         String keyName = ConvertToStdString(info[0].As<Napi::String>());
-        return Napi::Boolean::New(info.Env(), _regKey.HasSubkey(keyName));
+        return Napi::Boolean::New(info.Env(), _regKey.HasSubKey(keyName));
     }
     else
         throw Napi::TypeError::New(info.Env(), "Subkey name expected.");

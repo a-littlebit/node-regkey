@@ -102,20 +102,20 @@ public:
 
     bool Rename(const String &newName);
 
-    HKEY OpenSubkey(const String &subkeyName,
+    HKEY OpenSubKey(const String &subKeyName,
                     REGSAM access = 0);
 
-    HKEY CreateSubkey(const String &subkeyName,
+    HKEY CreateSubKey(const String &subKeyName,
                       REGSAM access = 0);
 
     bool DeleteTree();
-    bool DeleteTree(const String &subkeyName);
+    bool DeleteTree(const String &subKeyName);
 
-    bool DeleteSubkey(const String &subkeyName);
+    bool DeleteSubKey(const String &subKeyName);
 
-    bool HasSubkey(const String &subkeyName);
+    bool HasSubKey(const String &subKeyName);
 
-    std::vector<String> GetSubkeyNames();
+    std::vector<String> GetSubKeyNames();
 
     RegValue GetValue(const String &valueName,
                       bool *success = nullptr);

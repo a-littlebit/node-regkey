@@ -44,11 +44,11 @@ public:
   // Key Operations
 
   Napi::Value DeleteTree(const Napi::CallbackInfo &info);
-  Napi::Value OpenSubkey(const Napi::CallbackInfo &info);
-  Napi::Value CreateSubkey(const Napi::CallbackInfo &info);
-  Napi::Value DeleteSubkey(const Napi::CallbackInfo &info);
-  Napi::Value GetSubkeyNames(const Napi::CallbackInfo &info);
-  Napi::Value HasSubkey(const Napi::CallbackInfo &info);
+  Napi::Value OpenSubKey(const Napi::CallbackInfo &info);
+  Napi::Value CreateSubKey(const Napi::CallbackInfo &info);
+  Napi::Value DeleteSubKey(const Napi::CallbackInfo &info);
+  Napi::Value GetSubKeyNames(const Napi::CallbackInfo &info);
+  Napi::Value HasSubKey(const Napi::CallbackInfo &info);
 
 private:
   void _ThrowRegKeyError(const Napi::CallbackInfo &info,
