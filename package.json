@@ -27,29 +27,29 @@
     "binding.gyp",
     "dist/index.cjs",
     "dist/index.mjs",
+    "include",
     "index.d.ts",
     "LICENSE",
-    "prebuilds",
     "README.md",
     "src"
   ],
   "scripts": {
-    "install": "node-gyp-build",
+    "install": "node-gyp rebuild",
     "test": "node --trace-warnings ./tests/test.js",
-    "clean": "node-gyp clean",
-    "build:js": "rollup -c",
+    "clean": "node-gyp clean && npx rimraf dist",
+    "rollup": "rollup -c",
     "build:debug": "node-gyp configure build --debug",
-    "prebuild": "prebuildify --napi --strip --platform=win32 --arch=x64",
-    "pre-publish": "npm run build:js && npm run prebuild"
+    "build:release": "node-gyp configure build --release"
   },
   "dependencies": {
-    "node-gyp-build": "^4.8.4"
+    "bindings": "^1.5.0",
+    "node-addon-api": "^8.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.2",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "node-addon-api": "^8.0.0",
+    "rimraf": "^6.0.1",
     "rollup": "^4.29.1"
   }
 }

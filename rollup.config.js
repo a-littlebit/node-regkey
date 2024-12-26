@@ -22,6 +22,6 @@ module.exports = [
       commonjs(),
       terser()
     ],
-    external: ['node-gyp-build']
+    external: ['bindings']
   },
 ];
