@@ -1,8 +1,9 @@
+#ifdef WIN32
 #include "RegKeyWrap.h"
 
 Napi::Object Init(Napi::Env env, Napi::Object exports)
 {
-    RegKeyWrap::Init(env, exports);
+    exports = RegKeyWrap::Init(env, exports);
 
     exports.Set("hkcr", RegKeyWrap::NewInstance(env, HKEY_CLASSES_ROOT,        STR("HKEY_CLASS_ROOT")));
     exports.Set("hkcu", RegKeyWrap::NewInstance(env, HKEY_CURRENT_USER,        STR("HKEY_CURRENT_USER")));
@@ -48,5 +49,29 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     exports.Set("RegKeyAccess", access);
     return exports;
 }
+
+#else
+#include <napi.h>
+
+Napi::Object Init(Napi::Env env, Napi::Object exports)
+{
+    exports.Set("RegKey", Napi::Function::New(env, [](const Napi::CallbackInfo &info)
+                                              { return info.Env().Undefined(); }));
+
+    exports.Set("hkcr", env.Null());
+    exports.Set("hkcu", env.Null());
+    exports.Set("hklm", env.Null());
+    exports.Set("hku" , env.Null());
+    exports.Set("hkcc", env.Null());
+    exports.Set("hkpd", env.Null());
+    exports.Set("hkpt", env.Null());
+    exports.Set("hkpn", env.Null());
+
+    exports.Set("RegKeyAccess", Napi::Object::New(env));
+
+    return exports;
+}
+
+#endif
 
 NODE_API_MODULE(NODE_GYP_MODULE_NAME, Init)

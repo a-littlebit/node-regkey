@@ -24,23 +24,22 @@
     }
   },
   "files": [
+    "binding.gyp",
     "dist/index.cjs",
     "dist/index.mjs",
-    "prebuilds",
     "index.d.ts",
     "LICENSE",
-    "README.md"
+    "prebuilds",
+    "README.md",
+    "src"
   ],
   "scripts": {
-    "install": "node -p \"'' // All supported runtimes have prebuilt binaries, no need to rebuild.\"",
+    "install": "node-gyp-build",
     "test": "node --trace-warnings ./tests/test.js",
     "clean": "node-gyp clean",
     "build:js": "rollup -c",
     "build:debug": "node-gyp configure build --debug",
-    "prebuild:ia32": "prebuildify --napi --strip --platform=win32 --arch=ia32",
-    "prebuild:x64": "prebuildify --napi --strip --platform=win32 --arch=x64",
-    "prebuild:arm64": "prebuildify --napi --strip --platform=win32 --arch=arm64",
-    "prebuild": "npm run prebuild:ia32 && npm run prebuild:x64 && npm run prebuild:arm64",
+    "prebuild": "prebuildify --napi --strip --platform=win32 --arch=x64",
     "pre-publish": "npm run build:js && npm run prebuild"
   },
   "dependencies": {

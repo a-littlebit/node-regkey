@@ -5,10 +5,8 @@
       "cflags!": [ "-fno-exceptions" ],
       "cflags_cc!": [ "-fno-exceptions" ],
       "sources": [
-        "./src/Binding.cpp",
-        "./src/RegKey.cpp",
-        "./src/RegKeyWrap.cpp"
-       ],
+        "./src/Binding.cpp"
+      ],
       "include_dirs": [
         "./include",
         "<!@(node -p \"require('node-addon-api').include\")"
@@ -18,6 +16,14 @@
       ],
       "defines": [ 
         "NODE_ADDON_API_CPP_EXCEPTIONS"
+      ],
+      "conditions": [
+        ["OS=='win'", {
+          "sources": [
+            "./src/RegKey.cpp",
+            "./src/RegKeyWrap.cpp"
+          ]
+        }]
       ]
     }
   ]
