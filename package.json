@@ -51,6 +51,7 @@
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
     "node-addon-api": "^8.0.0",
+    "prebuildify": "^6.0.1",
     "rollup": "^4.29.1"
   }
 }
