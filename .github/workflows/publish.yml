@@ -30,15 +30,15 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install -g yarn
+          yarn install
 
       - name: Run pre-publish build
         run: npm run pre-publish
 
       - name: Update version
-        run: |
-          git status
-          npm version patch
+        run: npm version patch
 
       - name: Publish to NPM
         env:
