@@ -10,6 +10,20 @@ Provide fast access to Windows registry for Node.js using native Windows API.
 npm install regkey
 ```
 
+If you are using vite, make sure to externalize the `regkey` from your bundle:
+
+```javascript
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      external: ['regkey']
+    }
+  },
+});
+```
+
 ## Usage
 
 #### Import a base key
