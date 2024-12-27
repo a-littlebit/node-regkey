@@ -1,0 +1,57 @@
+name: Scheduled NPM Publish 2.3.3
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   # Publish on 2024-12-30
+  #   - cron: '0 0 30 12 *'
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      # Well, I dont't want it to run on 2025-12-30
+      # - name: Check date
+      #   run: |
+      #     TODAY=$(date +'%Y-%m-%d')
+      #     if [ "$TODAY" != "2024-12-30" ]; then
+      #       echo "Not the target date, exiting..."
+      #       exit 0
+      #     fi
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run pre-publish build
+        run: npm run pre-publish
+
+      - name: Update version
+        run: |
+          npm version patch
+
+      - name: Publish to NPM
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # run: npm publish
+        run: npm pack
+
+      # - name: Push changes
+      #   if: success()
+      #   run: |
+      #     git push origin HEAD:main
+
+      - name: Upload debug files
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-artifacts
+          path: regkey@2.3.3.tgz
