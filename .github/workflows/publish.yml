@@ -37,6 +37,7 @@ jobs:
 
       - name: Update version
         run: |
+          git status
           npm version patch
 
       - name: Publish to NPM
