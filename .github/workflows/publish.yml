@@ -39,6 +39,7 @@ jobs:
           npm publish
 
       - name: Push changes
-        if: success()
-        run: |
-          git push origin HEAD:main
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
